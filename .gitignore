@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+env/
+venv/
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Docker
+.dockerignore
