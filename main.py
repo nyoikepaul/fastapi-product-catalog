@@ -7,6 +7,17 @@ from typing import List
 import models
 from database import SessionLocal, engine
 from pydantic import BaseModel
+app = FastAPI(title="Production-Ready API")
+
+# Add this line right below 'app = FastAPI(...)'
+app = app # This explicitly exposes 'app' for Vercel
+
+
+
+
+
+
+
 
 # 1. Load Environment Variables
 load_dotenv()
