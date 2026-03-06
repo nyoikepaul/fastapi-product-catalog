@@ -1,6 +1,6 @@
 
 
-# Secure Product Catalog API (Expert Level)
+# Secure Product Catalog API 
 
 Production-ready FastAPI product catalog with **full CRUD**, validation, pagination, and `X-API-Key` security.
 
