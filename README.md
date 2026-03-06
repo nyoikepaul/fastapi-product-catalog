@@ -12,7 +12,7 @@ Production-ready FastAPI product catalog with **full CRUD**, validation, paginat
 - ✅ Production-grade code (pinned deps, proper 204 DELETE, etc.)
 
 ## 📡 Live Demo
-https://fastapi-product-catalog.vercel.app/docs
+https://fastapi-product-catalog.vercel.app/docs#/
 
 ## 🛠 Quick Start (Local)
 ```bash
