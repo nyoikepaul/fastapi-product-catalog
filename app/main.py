@@ -8,6 +8,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
+# Create tables on startup
+from app.db.session import engine, Base
+Base.metadata.create_all(bind=engine)
+
 app.include_router(products.router, prefix="/products", tags=["products"])
 
 @app.get("/")
