@@ -5,7 +5,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Secure Product Catalog"
     # Provide a default for local dev/testing to prevent ValidationErrors
     API_KEY: str = "dev_key_placeholder"
-    DATABASE_URL: str = "sqlite:///./test.db"
+    import os
+    DATABASE_URL: str = 'sqlite:////tmp/test.db' if os.environ.get('VERCEL') else 'sqlite:///./test.db'
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
