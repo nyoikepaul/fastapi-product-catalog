@@ -1,11 +1,5 @@
 fastapi==0.115.2
 uvicorn[standard]==0.34.0
 sqlalchemy==2.0.38
-pydantic-settings==2.6.1
+pydantic==2.10.6
 python-dotenv==1.0.1
-httpx==0.28.1
-pytest==8.3.4
-
-# ── Future Supabase / Postgres deps (uncomment when we migrate) ──
-# psycopg2-binary==2.9.12
-# alembic==1.14.0
