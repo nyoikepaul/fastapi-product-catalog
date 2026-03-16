@@ -1,19 +1,20 @@
+import os
+import sys
 from fastapi import FastAPI
+
+# Ensure the root directory is in the python path for Vercel
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+
 from app.api.endpoints import products
-from app.core.config import settings
 from app.db.session import engine, Base
 
-# Create the database tables
+# Initialize database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=settings.PROJECT_NAME)
-
-# Create tables on startup
-from app.db.session import engine, Base
-Base.metadata.create_all(bind=engine)
+app = FastAPI(title="Expert Product Catalog API")
 
 app.include_router(products.router, prefix="/products", tags=["products"])
 
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the Expert Level Product Catalog API"}
+def read_root():
+    return {"status": "online", "message": "Expert Product Catalog API is running"}
