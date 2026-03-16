@@ -1,25 +1,38 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-import sys
-import os
+from fastapi.middleware.cors import CORSMiddleware
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from app.routers.products import router as products_router
+from app.routers.categories import router as categories_router
+from app.core.database import init_db
 
-from app.main import app as api_app
+app = FastAPI(title="Expert Product Catalog", version="2.0")
 
-app = FastAPI(title="Expert Product Catalog")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Serve expert frontend
+# Expert Frontend at root
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 @app.get("/")
 async def serve_frontend():
     return FileResponse("static/index.html")
 
-# Include all your existing API routes
-app.include_router(api_app.router)
+# API routes
+app.include_router(products_router, prefix="/api/v1")
+app.include_router(categories_router, prefix="/api/v1")
 
 @app.get("/health")
 def health():
-    return {"status": "live", "database": "Supabase connected"}
+    return {"status": "healthy", "db": "Supabase"}
+
+# Create tables on Supabase
+@app.on_event("startup")
+def startup():
+    init_db()
