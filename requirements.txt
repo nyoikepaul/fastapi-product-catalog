@@ -1,20 +1,11 @@
-annotated-doc==0.0.4
-annotated-types==0.7.0
-anyio==4.12.1
-click==8.3.1
-fastapi==0.135.1
-greenlet==3.3.2
-h11==0.16.0
-idna==3.11
-psycopg2-binary==2.9.11
-pydantic==2.12.5
-pydantic_core==2.41.5
-SQLAlchemy==2.0.48
-starlette==0.52.1
-typing-inspection==0.4.2
-typing_extensions==4.15.0
-uvicorn==0.41.0
+fastapi==0.115.2
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.38
 pydantic-settings==2.6.1
-pydantic-settings==2.6.1
-✅ Added pydantic-settings to requirements.txtecho pydantic-settings==2.6.1
-pydantic-settings==2.6.1
+python-dotenv==1.0.1
+httpx==0.28.1
+pytest==8.3.4
+
+# ── Future Supabase / Postgres deps (uncomment when we migrate) ──
+# psycopg2-binary==2.9.12
+# alembic==1.14.0
