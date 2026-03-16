@@ -1,9 +1,22 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from app.core.config import settings
+import os
+from sqlalchemy import create_all, create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})
+# Check if we are running on Vercel
+if os.getenv("VERCEL"):
+    DATABASE_URL = "sqlite:////tmp/test.db"
+else:
+    DATABASE_URL = "sqlite:///./test.db"
+
+engine = create_engine(
+    DATABASE_URL, connect_args={"check_same_thread": False}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-class Base(DeclarativeBase):
-    pass
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
