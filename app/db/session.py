@@ -1,11 +1,13 @@
 import os
-from sqlalchemy import create_all, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Check if we are running on Vercel
-if os.getenv("VERCEL"):
-    DATABASE_URL = "sqlite:////tmp/test.db"
+# Vercel sets this environment variable automatically
+if os.environ.get("VERCEL") == "1":
+    # Four slashes '////' are required for an absolute path in SQLite
+    DATABASE_URL = "sqlite:////tmp/product_catalog.db"
 else:
+    # Standard local path
     DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(
