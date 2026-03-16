@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Catalog • Expert</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-950 text-white">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-80 bg-gray-900 p-8 border-r border-gray-800 flex flex-col">
+      <h1 class="text-3xl font-bold mb-12 flex items-center gap-3">
+        <i class="fa-solid fa-boxes text-emerald-500"></i> Catalog
+      </h1>
+      <input id="apiKey" type="password" 
+             class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-4 mb-6 text-sm focus:outline-none focus:border-emerald-500"
+             placeholder="Paste your X-API-Key here">
+      <button onclick="loadProducts()" 
+              class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-2xl font-semibold transition">
+        <i class="fa-solid fa-refresh mr-2"></i> Refresh Products
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <div class="bg-gray-900 px-10 py-6 flex justify-between items-center border-b border-gray-800">
+        <h2 class="text-2xl font-semibold">All Products</h2>
+        <button onclick="showCreateModal()" 
+                class="bg-emerald-500 hover:bg-emerald-600 px-8 py-4 rounded-2xl flex items-center gap-2 font-medium transition">
+          <i class="fa-solid fa-plus"></i> New Product
+        </button>
+      </div>
+      <div id="productsGrid" class="flex-1 p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 overflow-auto">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <div class="bg-gray-900 rounded-3xl w-full max-w-lg p-8">
+      <h3 id="modalTitle" class="text-2xl font-bold mb-6">New Product</h3>
+      <form id="productForm" onsubmit="saveProduct(event)">
+        <input id="productId" type="hidden">
+        <input id="name" required class="w-full mb-4 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 text-white" placeholder="Product name">
+        <textarea id="description" class="w-full mb-4 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 h-32 text-white" placeholder="Description"></textarea>
+        <div class="grid grid-cols-2 gap-4">
+          <input id="price" type="number" step="0.01" required class="bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 text-white" placeholder="Price">
+          <input id="stock" type="number" required class="bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 text-white" placeholder="Stock">
+        </div>
+        <div class="flex gap-4 mt-8">
+          <button type="button" onclick="hideModal()" 
+                  class="flex-1 py-4 bg-gray-800 hover:bg-gray-700 rounded-2xl transition">Cancel</button>
+          <button type="submit" id="saveBtn"
+                  class="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-semibold transition">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api/v1';
+
+    function getApiKey() {
+      const key = document.getElementById('apiKey').value.trim();
+      if (!key) {
+        alert("❌ Please enter your X-API-Key in the sidebar");
+        return null;
+      }
+      return key;
+    }
+
+    async function loadProducts() {
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = '<p class="text-gray-400 col-span-full text-center py-12">Loading products...</p>';
+
+      try {
+        const res = await fetch(`${API}/products`);
+        const data = await res.json();
+
+        let html = '';
+        data.forEach(p => {
+          html += `
+            <div class="bg-gray-900 rounded-3xl p-6 border border-gray-800 hover:border-emerald-500 transition-all">
+              <h3 class="text-xl font-semibold">${p.name}</h3>
+              <p class="text-gray-400 my-3 line-clamp-3">${p.description || 'No description'}</p>
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-emerald-400 font-bold">$${parseFloat(p.price).toFixed(2)}</span>
+                <span class="text-gray-500">${p.stock_quantity} in stock</span>
+              </div>
+              <div class="mt-6 flex gap-4">
+                <button onclick="editProduct(${p.id})" 
+                        class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-2xl text-sm font-medium">Edit</button>
+                <button onclick="deleteProduct(${p.id})" 
+                        class="flex-1 py-3 bg-red-600 hover:bg-red-700 rounded-2xl text-sm font-medium">Delete</button>
+              </div>
+            </div>`;
+        });
+
+        grid.innerHTML = html || '<p class="text-gray-400 col-span-full text-center py-12">No products yet. Create one!</p>';
+      } catch (err) {
+        grid.innerHTML = '<p class="text-red-400 col-span-full text-center py-12">Failed to load products. Check backend.</p>';
+        console.error(err);
+      }
+    }
+
+    function showCreateModal() {
+      document.getElementById('modalTitle').textContent = 'New Product';
+      document.getElementById('productForm').reset();
+      document.getElementById('productId').value = '';
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function hideModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    async function saveProduct(e) {
+      e.preventDefault();
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      const id = document.getElementById('productId').value;
+      const payload = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        price: parseFloat(document.getElementById('price').value),
+        stock_quantity: parseInt(document.getElementById('stock').value)
+      };
+
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `${API}/products/${id}` : `${API}/products`;
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          hideModal();
+          loadProducts();
+        } else {
+          const err = await res.json();
+          alert(`❌ Error: ${err.detail || 'Something went wrong'}`);
+        }
+      } catch (err) {
+        alert('❌ Network error. Check console.');
+        console.error(err);
+      }
+    }
+
+    async function editProduct(id) {
+      try {
+        const res = await fetch(`${API}/products/${id}`);
+        const p = await res.json();
+
+        document.getElementById('modalTitle').textContent = 'Edit Product';
+        document.getElementById('productId').value = p.id;
+        document.getElementById('name').value = p.name;
+        document.getElementById('description').value = p.description || '';
+        document.getElementById('price').value = p.price;
+        document.getElementById('stock').value = p.stock_quantity;
+
+        document.getElementById('modal').classList.remove('hidden');
+      } catch (err) {
+        alert('❌ Failed to load product');
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Delete this product permanently?')) return;
+      const apiKey = getApiKey();
+      if (!apiKey) return;
+
+      try {
+        const res = await fetch(`${API}/products/${id}`, {
+          method: 'DELETE',
+          headers: { 'X-API-Key': apiKey }
+        });
+        if (res.ok) loadProducts();
+        else alert('❌ Delete failed (check API key)');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Auto-load
+    window.onload = loadProducts;
+  </script>
+</body>
+</html>
