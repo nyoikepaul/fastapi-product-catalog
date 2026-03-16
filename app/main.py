@@ -1,20 +1,43 @@
-import os
-import sys
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-# Ensure the root directory is in the python path for Vercel
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from app.core.config import settings
+from app.core.database import init_db
+from app.routers.products import router as products_router
+from app.routers.categories import router as categories_router
 
-from app.api.endpoints import products
-from app.db.session import engine, Base
+app = FastAPI(
+    title="Expert Product Catalog API",
+    description="Production-ready with Supabase",
+    version="2.0.0"
+)
 
-# Initialize database tables
-Base.metadata.create_all(bind=engine)
+# CORS + Static Frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-app = FastAPI(title="Expert Product Catalog API")
-
-app.include_router(products.router, prefix="/products", tags=["products"])
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 @app.get("/")
-def read_root():
-    return {"status": "online", "message": "Expert Product Catalog API is running"}
+async def serve_expert_frontend():
+    return FileResponse("static/index.html")
+
+# All your existing API routes
+app.include_router(products_router, prefix="/api/v1")
+app.include_router(categories_router, prefix="/api/v1")
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "database": "Supabase Live"}
+
+# Startup: create tables on Supabase
+@app.on_event("startup")
+def startup_event():
+    init_db()
