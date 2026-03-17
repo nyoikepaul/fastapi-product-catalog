@@ -15,7 +15,6 @@
 </head>
 <body class="bg-gray-950 text-white">
   <div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
     <div class="w-96 bg-gray-900 border-r border-gray-800 flex flex-col p-8">
       <div class="flex items-center gap-3 mb-10">
         <i class="fa-solid fa-boxes-stacked text-4xl text-emerald-500"></i>
@@ -59,8 +58,6 @@
               <label class="text-xs text-gray-400">Sort by</label>
               <select id="sortSelect" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
                 <option value="name-asc">Name A-Z</option>
-                <option value="name-desc">Name Z-A</option>
-                <option value="price-asc">Price Low-High</option>
                 <option value="price-desc">Price High-Low</option>
               </select>
             </div>
@@ -74,7 +71,6 @@
       </div>
     </div>
 
-    <!-- Main Content -->
     <div class="flex-1 flex flex-col">
       <div class="bg-gray-900 px-10 py-6 border-b border-gray-800 flex items-center justify-between">
         <div>
@@ -119,8 +115,6 @@
   <script>
     const API = '/api/v1';
     let allProducts = [];
-    let currentPage = 1;
-    const PAGE_SIZE = 6;
 
     function getApiKey() {
       const key = document.getElementById('apiKey').value.trim();
@@ -142,98 +136,59 @@
 
     async function loadProducts() {
       const grid = document.getElementById('productsGrid');
-      grid.innerHTML = `<div class="col-span-full flex items-center justify-center py-20"><i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-500"></i></div>`;
+      grid.innerHTML = `<div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-500"></i></div>`;
 
       try {
         const res = await fetch(`${API}/products`);
+        if (!res.ok) throw new Error('API error');
         allProducts = await res.json();
-        currentPage = 1;
         renderProducts();
-        showToast('✅ Products loaded from Supabase', 'success');
+        showToast('✅ Products loaded successfully', 'success');
       } catch (err) {
+        grid.innerHTML = `<p class="col-span-full text-red-400 text-center py-12">Failed to load products. Check your X-API-Key and try again.</p>`;
         showToast('❌ Failed to load products', 'error');
       }
     }
 
     function renderProducts() {
       let filtered = allProducts.filter(p => {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-        const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
-        const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
-        const inStockOnly = document.getElementById('inStockOnly').checked;
-        const matchesSearch = !searchTerm || 
-          p.name.toLowerCase().includes(searchTerm) || 
-          (p.description && p.description.toLowerCase().includes(searchTerm));
-        const matchesPrice = p.price >= minPrice && p.price <= maxPrice;
-        const matchesStock = !inStockOnly || p.stock_quantity > 0;
-        return matchesSearch && matchesPrice && matchesStock;
+        const search = document.getElementById('searchInput').value.toLowerCase().trim();
+        const minP = parseFloat(document.getElementById('minPrice').value) || 0;
+        const maxP = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+        const stockOnly = document.getElementById('inStockOnly').checked;
+        return (!search || p.name.toLowerCase().includes(search) || (p.description && p.description.toLowerCase().includes(search))) &&
+               p.price >= minP && p.price <= maxP &&
+               (!stockOnly || p.stock_quantity > 0);
       });
 
-      const sortBy = document.getElementById('sortSelect').value;
-      filtered.sort((a, b) => {
-        if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
-        if (sortBy === 'price-desc') return b.price - a.price;
-        return 0;
-      });
+      const sort = document.getElementById('sortSelect').value;
+      if (sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
+      else filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-      const total = filtered.length;
-      document.getElementById('countText').textContent = `${total} product${total !== 1 ? 's' : ''}`;
-
-      const start = (currentPage - 1) * PAGE_SIZE;
-      const paginated = filtered.slice(start, start + PAGE_SIZE);
+      document.getElementById('countText').textContent = `${filtered.length} products`;
 
       let html = '';
-      if (paginated.length === 0) {
-        html = `<div class="col-span-full text-center py-20"><i class="fa-solid fa-box-open text-6xl text-gray-600 mb-4"></i><p class="text-xl text-gray-400">No products match your filters</p><button onclick="resetFilters()" class="mt-6 text-emerald-400 hover:text-emerald-500">Clear filters</button></div>`;
+      if (filtered.length === 0) {
+        html = `<div class="col-span-full text-center py-20"><i class="fa-solid fa-box-open text-6xl text-gray-600"></i><p class="text-xl text-gray-400 mt-4">No products found</p></div>`;
       } else {
-        paginated.forEach(p => {
-          const stockClass = p.stock_quantity < 10 ? 'text-red-400' : 'text-emerald-400';
+        filtered.forEach(p => {
           html += `
-            <div class="product-card bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
-              <img src="https://picsum.photos/id/${p.id}/600/300" class="w-full h-48 object-cover">
-              <div class="p-6">
-                <h3 class="font-semibold text-xl">${p.name}</h3>
-                <p class="text-gray-400 text-sm mt-2 line-clamp-2">${p.description || 'No description'}</p>
-                <div class="flex justify-between mt-6">
-                  <span class="text-3xl font-bold text-emerald-400">$${p.price.toFixed(2)}</span>
-                  <span class="${stockClass}">${p.stock_quantity} in stock</span>
-                </div>
-                <div class="mt-6 flex gap-4">
-                  <button onclick="editProduct(${p.id})" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-2xl text-sm">Edit</button>
-                  <button onclick="deleteProduct(${p.id})" class="flex-1 py-3 bg-red-600 hover:bg-red-700 rounded-2xl text-sm">Delete</button>
-                </div>
+            <div class="product-card bg-gray-900 border border-gray-800 rounded-3xl p-6">
+              <img src="https://picsum.photos/id/${p.id}/600/300" class="w-full h-48 object-cover rounded-2xl">
+              <h3 class="font-semibold text-xl mt-4">${p.name}</h3>
+              <p class="text-gray-400 text-sm mt-2">${p.description || ''}</p>
+              <div class="flex justify-between mt-6">
+                <span class="text-3xl font-bold text-emerald-400">$${p.price}</span>
+                <span class="text-sm ${p.stock_quantity < 10 ? 'text-red-400' : 'text-emerald-400'}">${p.stock_quantity} in stock</span>
+              </div>
+              <div class="mt-6 flex gap-3">
+                <button onclick="editProduct(${p.id})" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-2xl">Edit</button>
+                <button onclick="deleteProduct(${p.id})" class="flex-1 py-3 bg-red-600 hover:bg-red-700 rounded-2xl">Delete</button>
               </div>
             </div>`;
         });
       }
       document.getElementById('productsGrid').innerHTML = html;
-      renderPagination(filtered.length);
-    }
-
-    function renderPagination(total) {
-      const totalPages = Math.ceil(total / PAGE_SIZE);
-      const pagination = document.getElementById('pagination');
-      if (totalPages <= 1) {
-        pagination.innerHTML = '';
-        return;
-      }
-      pagination.innerHTML = `
-        <button onclick="prevPage()" ${currentPage === 1 ? 'disabled' : ''} class="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-2xl disabled:opacity-30">← Previous</button>
-        <span class="text-gray-400">Page ${currentPage} of ${totalPages}</span>
-        <button onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''} class="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-2xl disabled:opacity-30">Next →</button>
-      `;
-    }
-
-    function prevPage() { if (currentPage > 1) { currentPage--; renderProducts(); } }
-    function nextPage() { currentPage++; renderProducts(); }
-
-    function resetFilters() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('minPrice').value = '';
-      document.getElementById('maxPrice').value = '';
-      document.getElementById('inStockOnly').checked = false;
-      document.getElementById('sortSelect').value = 'name-asc';
-      renderProducts();
     }
 
     function showCreateModal() {
@@ -254,8 +209,8 @@
 
       const id = document.getElementById('productId').value;
       const payload = {
-        name: document.getElementById('name').value.trim(),
-        description: document.getElementById('description').value.trim(),
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
         price: parseFloat(document.getElementById('price').value),
         stock_quantity: parseInt(document.getElementById('stock').value)
       };
@@ -266,15 +221,15 @@
       try {
         const res = await fetch(url, {
           method,
-          headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+          headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
           body: JSON.stringify(payload)
         });
         if (res.ok) {
           hideModal();
           loadProducts();
-          showToast(id ? '✅ Product updated' : '✅ Product created successfully!', 'success');
+          showToast('✅ Saved successfully', 'success');
         } else {
-          showToast('❌ Save failed (check key)', 'error');
+          showToast('❌ Save failed', 'error');
         }
       } catch (err) {
         showToast('❌ Network error', 'error');
@@ -293,35 +248,25 @@
         document.getElementById('stock').value = p.stock_quantity;
         document.getElementById('modal').classList.remove('hidden');
       } catch (err) {
-        showToast('❌ Failed to load product', 'error');
+        showToast('❌ Failed to load', 'error');
       }
     }
 
     async function deleteProduct(id) {
-      if (!confirm('Delete this product permanently?')) return;
+      if (!confirm('Delete permanently?')) return;
       const apiKey = getApiKey();
       if (!apiKey) return;
-
       try {
-        const res = await fetch(`${API}/products/${id}`, {
-          method: 'DELETE',
-          headers: { 'X-API-Key': apiKey }
-        });
-        if (res.ok) {
-          loadProducts();
-          showToast('✅ Product deleted', 'success');
-        } else {
-          showToast('❌ Delete failed', 'error');
-        }
+        await fetch(`${API}/products/${id}`, { method: 'DELETE', headers: {'X-API-Key': apiKey} });
+        loadProducts();
+        showToast('✅ Deleted', 'success');
       } catch (err) {
-        showToast('❌ Network error', 'error');
+        showToast('❌ Delete failed', 'error');
       }
     }
 
-    document.getElementById('searchInput').addEventListener('input', () => {
-      clearTimeout(window.searchTimeout);
-      window.searchTimeout = setTimeout(renderProducts, 300);
-    });
+    // Simple listeners
+    document.getElementById('searchInput').addEventListener('input', () => setTimeout(renderProducts, 300));
     document.getElementById('minPrice').addEventListener('input', renderProducts);
     document.getElementById('maxPrice').addEventListener('input', renderProducts);
     document.getElementById('inStockOnly').addEventListener('change', renderProducts);
