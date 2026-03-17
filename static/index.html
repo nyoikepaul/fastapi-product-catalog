@@ -7,110 +7,93 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    .nav-active { background-color: rgb(16 185 129); color: white; font-weight: 600; }
+    .toast { animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
     .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.15); }
+    .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
   </style>
 </head>
 <body class="bg-gray-950 text-white">
   <div class="flex h-screen overflow-hidden">
-    <!-- Vertical Sidebar (Supabase Style) -->
-    <div class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col">
-      <div class="px-8 py-8 flex items-center gap-3 border-b border-gray-800">
+    <!-- Sidebar -->
+    <div class="w-96 bg-gray-900 border-r border-gray-800 flex flex-col p-8">
+      <div class="flex items-center gap-3 mb-10">
         <i class="fa-solid fa-boxes-stacked text-4xl text-emerald-500"></i>
-        <div>
-          <span class="text-3xl font-bold tracking-tighter">Catalog</span>
-          <p class="text-xs text-gray-500 -mt-1">Expert System</p>
-        </div>
+        <h1 class="text-4xl font-bold tracking-tighter">Catalog</h1>
       </div>
 
-      <nav class="flex-1 px-3 py-6 space-y-1">
-        <a href="#" class="nav-item flex items-center gap-3 px-6 py-4 rounded-2xl nav-active">
-          <i class="fa-solid fa-table text-lg"></i>
-          <span>Products</span>
-        </a>
-        <a href="#" class="nav-item flex items-center gap-3 px-6 py-4 rounded-2xl hover:bg-gray-800 transition">
-          <i class="fa-solid fa-chart-line text-lg"></i>
-          <span>Analytics</span>
-        </a>
-        <a href="#" class="nav-item flex items-center gap-3 px-6 py-4 rounded-2xl hover:bg-gray-800 transition">
-          <i class="fa-solid fa-boxes text-lg"></i>
-          <span>Inventory</span>
-        </a>
-        <a href="#" class="nav-item flex items-center gap-3 px-6 py-4 rounded-2xl hover:bg-gray-800 transition">
-          <i class="fa-solid fa-cog text-lg"></i>
-          <span>Settings</span>
-        </a>
-      </nav>
+      <div class="space-y-8">
+        <div>
+          <label class="text-xs uppercase tracking-widest text-gray-500 mb-2 block">X-API-KEY</label>
+          <input id="apiKey" type="password" placeholder="Paste your X-API-Key" 
+                 class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 text-sm focus:border-emerald-500 focus:outline-none">
+        </div>
 
-      <div class="p-6 border-t border-gray-800">
-        <label class="text-xs uppercase tracking-widest text-gray-500 mb-2 block">X-API-KEY</label>
-        <input id="apiKey" type="password" placeholder="Paste your X-API-Key" 
-               class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 text-sm focus:border-emerald-500 focus:outline-none">
+        <div>
+          <label class="text-xs uppercase tracking-widest text-gray-500 mb-2 block">Search Products</label>
+          <div class="relative">
+            <input id="searchInput" type="text" placeholder="Name or description..." 
+                   class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 pl-12 text-sm focus:border-emerald-500 focus:outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-500"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs uppercase tracking-widest text-gray-500 mb-3 block">Filters & Sort</label>
+          <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-gray-400">Min Price</label>
+                <input id="minPrice" type="number" placeholder="0" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
+              </div>
+              <div>
+                <label class="text-xs text-gray-400">Max Price</label>
+                <input id="maxPrice" type="number" placeholder="999" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <input id="inStockOnly" type="checkbox" class="w-5 h-5 accent-emerald-500">
+              <label class="text-sm">In stock only</label>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Sort by</label>
+              <select id="sortSelect" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="price-asc">Price Low-High</option>
+                <option value="price-desc">Price High-Low</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="loadProducts()" 
+                class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2 transition">
+          <i class="fa-solid fa-rotate"></i> Refresh from Server
+        </button>
       </div>
     </div>
 
-    <!-- Main Area -->
+    <!-- Main Content -->
     <div class="flex-1 flex flex-col">
-      <!-- Top Bar -->
-      <div class="h-16 bg-gray-900 border-b border-gray-800 px-8 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold">All Products</h1>
+      <div class="bg-gray-900 px-10 py-6 border-b border-gray-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-3xl font-semibold">All Products</h2>
+          <p id="countText" class="text-gray-400 text-sm">0 products</p>
+        </div>
         <button onclick="showCreateModal()" 
-                class="bg-emerald-500 hover:bg-emerald-600 px-8 py-3 rounded-3xl flex items-center gap-2 font-medium transition">
+                class="bg-emerald-500 hover:bg-emerald-600 px-8 py-4 rounded-3xl flex items-center gap-3 font-medium transition">
           <i class="fa-solid fa-plus"></i> New Product
         </button>
       </div>
 
-      <!-- Stats Row -->
-      <div class="grid grid-cols-4 gap-6 px-8 py-6 bg-gray-900 border-b border-gray-800">
-        <div class="bg-gray-800 border border-gray-700 rounded-3xl p-6">
-          <p class="text-xs text-gray-400">TOTAL PRODUCTS</p>
-          <p id="totalProducts" class="text-4xl font-bold mt-2">0</p>
-        </div>
-        <div class="bg-gray-800 border border-gray-700 rounded-3xl p-6">
-          <p class="text-xs text-gray-400">TOTAL VALUE</p>
-          <p id="totalValue" class="text-4xl font-bold mt-2 text-emerald-400">$0</p>
-        </div>
-        <div class="bg-gray-800 border border-gray-700 rounded-3xl p-6">
-          <p class="text-xs text-gray-400">IN STOCK</p>
-          <p id="inStockCount" class="text-4xl font-bold mt-2">0</p>
-        </div>
-        <div class="bg-gray-800 border border-gray-700 rounded-3xl p-6">
-          <p class="text-xs text-gray-400">LOW STOCK</p>
-          <p id="lowStockCount" class="text-4xl font-bold mt-2 text-red-400">0</p>
-        </div>
-      </div>
+      <div id="productsGrid" class="flex-1 p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 overflow-auto"></div>
 
-      <!-- Filters -->
-      <div class="px-8 py-6 bg-gray-900 border-b border-gray-800 flex gap-6 items-center">
-        <div class="flex-1 relative">
-          <input id="searchInput" type="text" placeholder="Search name or description..." 
-                 class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 pl-12 focus:border-emerald-500">
-          <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"></i>
-        </div>
-        <input id="minPrice" type="number" placeholder="Min $" class="bg-gray-800 border border-gray-700 rounded-3xl px-5 py-4 w-32">
-        <input id="maxPrice" type="number" placeholder="Max $" class="bg-gray-800 border border-gray-700 rounded-3xl px-5 py-4 w-32">
-        <label class="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 cursor-pointer">
-          <input id="inStockOnly" type="checkbox" class="accent-emerald-500"> In stock only
-        </label>
-        <select id="sortSelect" class="bg-gray-800 border border-gray-700 rounded-3xl px-5 py-4">
-          <option value="name-asc">Name A-Z</option>
-          <option value="price-desc">Price High-Low</option>
-        </select>
-        <button onclick="loadProducts()" class="bg-emerald-600 hover:bg-emerald-700 px-8 py-4 rounded-3xl flex items-center gap-2">
-          <i class="fa-solid fa-rotate"></i> Refresh
-        </button>
-      </div>
-
-      <!-- Products Grid -->
-      <div id="productsGrid" class="flex-1 p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 overflow-auto"></div>
-
-      <!-- Pagination -->
-      <div id="pagination" class="bg-gray-900 border-t border-gray-800 px-8 py-5 flex justify-between items-center"></div>
+      <div id="pagination" class="bg-gray-900 border-t border-gray-800 px-10 py-5 flex justify-between items-center text-sm"></div>
     </div>
   </div>
 
-  <!-- Modal (unchanged) -->
+  <!-- Modal -->
   <div id="modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
     <div class="bg-gray-900 rounded-3xl w-full max-w-md p-8">
       <h3 id="modalTitle" class="text-2xl font-bold mb-6">New Product</h3>
@@ -130,11 +113,10 @@
     </div>
   </div>
 
-  <!-- Toast Container -->
+  <!-- Toast -->
   <div id="toastContainer" class="fixed top-6 right-6 z-50 flex flex-col gap-3"></div>
 
   <script>
-    // ==================== EXACT SAME JS AS YOUR PREVIOUS WORKING VERSION ====================
     const API = '/api/v1';
     let allProducts = [];
     let currentPage = 1;
@@ -179,7 +161,9 @@
         const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
         const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
         const inStockOnly = document.getElementById('inStockOnly').checked;
-        const matchesSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm) || (p.description && p.description.toLowerCase().includes(searchTerm));
+        const matchesSearch = !searchTerm || 
+          p.name.toLowerCase().includes(searchTerm) || 
+          (p.description && p.description.toLowerCase().includes(searchTerm));
         const matchesPrice = p.price >= minPrice && p.price <= maxPrice;
         const matchesStock = !inStockOnly || p.stock_quantity > 0;
         return matchesSearch && matchesPrice && matchesStock;
@@ -192,23 +176,15 @@
         return 0;
       });
 
-      // Update Stats
-      const total = allProducts.length;
-      const value = allProducts.reduce((sum, p) => sum + p.price * p.stock_quantity, 0);
-      const inStock = allProducts.filter(p => p.stock_quantity > 0).length;
-      const lowStock = allProducts.filter(p => p.stock_quantity < 10).length;
-
-      document.getElementById('totalProducts').textContent = total;
-      document.getElementById('totalValue').textContent = '$' + value.toFixed(0);
-      document.getElementById('inStockCount').textContent = inStock;
-      document.getElementById('lowStockCount').textContent = lowStock;
+      const total = filtered.length;
+      document.getElementById('countText').textContent = `${total} product${total !== 1 ? 's' : ''}`;
 
       const start = (currentPage - 1) * PAGE_SIZE;
       const paginated = filtered.slice(start, start + PAGE_SIZE);
 
       let html = '';
       if (paginated.length === 0) {
-        html = `<div class="col-span-full text-center py-20"><i class="fa-solid fa-box-open text-6xl text-gray-600 mb-4"></i><p class="text-xl text-gray-400">No products match your filters</p></div>`;
+        html = `<div class="col-span-full text-center py-20"><i class="fa-solid fa-box-open text-6xl text-gray-600 mb-4"></i><p class="text-xl text-gray-400">No products match your filters</p><button onclick="resetFilters()" class="mt-6 text-emerald-400 hover:text-emerald-500">Clear filters</button></div>`;
       } else {
         paginated.forEach(p => {
           const stockClass = p.stock_quantity < 10 ? 'text-red-400' : 'text-emerald-400';
@@ -251,6 +227,15 @@
     function prevPage() { if (currentPage > 1) { currentPage--; renderProducts(); } }
     function nextPage() { currentPage++; renderProducts(); }
 
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      document.getElementById('inStockOnly').checked = false;
+      document.getElementById('sortSelect').value = 'name-asc';
+      renderProducts();
+    }
+
     function showCreateModal() {
       document.getElementById('modalTitle').textContent = 'New Product';
       document.getElementById('productForm').reset();
@@ -289,7 +274,7 @@
           loadProducts();
           showToast(id ? '✅ Product updated' : '✅ Product created successfully!', 'success');
         } else {
-          showToast('❌ Save failed', 'error');
+          showToast('❌ Save failed (check key)', 'error');
         }
       } catch (err) {
         showToast('❌ Network error', 'error');
@@ -333,15 +318,14 @@
       }
     }
 
-    // Live filter listeners
     document.getElementById('searchInput').addEventListener('input', () => {
       clearTimeout(window.searchTimeout);
       window.searchTimeout = setTimeout(renderProducts, 300);
     });
-    ['minPrice','maxPrice','inStockOnly','sortSelect'].forEach(id => {
-      document.getElementById(id).addEventListener('input', renderProducts);
-      document.getElementById(id).addEventListener('change', renderProducts);
-    });
+    document.getElementById('minPrice').addEventListener('input', renderProducts);
+    document.getElementById('maxPrice').addEventListener('input', renderProducts);
+    document.getElementById('inStockOnly').addEventListener('change', renderProducts);
+    document.getElementById('sortSelect').addEventListener('change', renderProducts);
 
     window.onload = loadProducts;
   </script>
