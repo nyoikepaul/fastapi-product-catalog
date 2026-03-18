@@ -109,7 +109,7 @@ def read_products(db: Session = Depends(get_db)):
 @app.post("/products/", dependencies=[Depends(verify_api_key)])
 def create_product(product: dict, db: Session = Depends(get_db)):
     db.execute(
-        text("INSERT INTO products (name, description, price) VALUES (:name, :dion, :price)"),
+        text("INSERT INTO products (name, description, price) VALUES (:name, :description, :price)"),
         {"name": product.get("name"), "description": product.get("description"), "price": product.get("price")}
     )
     db.commit()
