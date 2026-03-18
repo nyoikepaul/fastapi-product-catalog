@@ -32,8 +32,7 @@ def serve_frontend():
             .card { background: #161b22; border: 1px solid #30363d; }
             .input-field { background: #0d1117; border: 1px solid #30363d; color: white; padding: 8px; border-radius: 4px; }
             .btn-primary { background: #238636; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; }
-            .btn-primary:hover { background: #2ea043; }
-            #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 50; }
+            .btn-danger { background: #da3633; color: white; padding: 8px 16px; border-radius: 6px; font-weight: bold; }
         </style>
     </head>
     <body class="p-4 md:p-10">
@@ -43,31 +42,44 @@ def serve_frontend():
                 <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">NBO_SECURE_NODE_01</p>
             </div>
             <div class="flex gap-3">
-                <input type="password" id="api-key-input" placeholder="Enter API Key" class="input-field text-xs w-32">
-                <button onclick="document.getElementById('modal').style.display='flex'" class="btn-primary text-xs">+ NEW_ENTRY</button>
+                <input type="password" id="api-key-input" placeholder="API Key" class="input-field text-xs w-32">
+                <button onclick="openModal()" class="btn-primary text-xs">+ NEW_ENTRY</button>
             </div>
         </header>
 
-        <div id="catalog" class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="text-gray-600 animate-pulse">SYNCHRONIZING_DATABASE...</div>
-        </div>
+        <div id="catalog" class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-        <div id="modal">
+        <div id="modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
             <div class="card p-8 rounded-lg w-full max-w-md">
-                <h2 class="text-lg font-bold mb-6 text-blue-400 underline">INITIALIZE_NEW_RECORD</h2>
+                <h2 id="modal-title" class="text-lg font-bold mb-6 text-blue-400 underline">INITIALIZE_RECORD</h2>
+                <input type="hidden" id="p-id">
                 <div class="flex flex-col gap-4">
                     <input id="p-name" placeholder="Product Name" class="input-field">
-                    <textarea id="p-desc" placeholder="System Description" class="input-field h-24"></textarea>
-                    <input id="p-price" type="number" placeholder="Price (USD)" class="input-field">
+                    <textarea id="p-desc" placeholder="Description" class="input-field h-24"></textarea>
+                    <input id="p-price" type="number" placeholder="Price" class="input-field">
                     <div class="flex gap-3 mt-4">
-                        <button onclick="saveProduct()" class="btn-primary flex-1">COMMIT_TO_DB</button>
-                        <button onclick="document.getElementById('modal').style.display='none'" class="bg-gray-800 px-4 py-2 rounded text-xs">ABORT</button>
+                        <button onclick="saveProduct()" class="btn-primary flex-1">COMMIT</button>
+                        <button onclick="closeModal()" class="bg-gray-800 px-4 py-2 rounded text-xs">ABORT</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <script>
+            let currentMode = 'create';
+
+            function openModal(id=null, name='', desc='', price='') {
+                currentMode = id ? 'edit' : 'create';
+                document.getElementById('modal-title').innerText = id ? 'UPDATE_RECORD' : 'INITIALIZE_RECORD';
+                document.getElementById('p-id').value = id;
+                document.getElementById('p-name').value = name;
+                document.getElementById('p-desc').value = desc;
+                document.getElementById('p-price').value = price;
+                document.getElementById('modal').classList.remove('hidden');
+            }
+
+            function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
             async function fetchCatalog() {
                 const res = await fetch('/products/');
                 const data = await res.json();
@@ -78,33 +90,47 @@ def serve_frontend():
                         <p class="text-xs text-gray-400 mt-2 mb-4">${item.description || ''}</p>
                         <div class="flex justify-between items-end pt-4 border-t border-gray-800">
                             <span class="text-green-400 font-bold">$${item.price}</span>
-                            <span class="text-[9px] text-gray-600 uppercase">Status: Verified</span>
+                            <div class="flex gap-2">
+                                <button onclick="openModal(${item.id}, '${item.name}', '${item.description}', ${item.price})" class="text-[10px] text-blue-400 hover:underline">EDIT</button>
+                                <button onclick="deleteProduct(${item.id})" class="text-[10px] text-red-500 hover:underline">DELETE</button>
+                            </div>
                         </div>
                     </div>
                 `).join('');
             }
 
             async function saveProduct() {
-                const apiKey = document.getElementById('api-key-input').value;
-                const payload = {
-                    name: document.getElementById('p-name').value,
-                    description: document.getElementById('p-desc').value,
-                    price: parseFloat(document.getElementById('').value)
-                };
-
-                const res = await fetch('/products/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-                    body: JSON.stringify(payload)
+                const id = document.getElementById('p-id').value;
+                const method = currentMode === 'create' ? 'POST' : 'PUT';
+                const url = currentMode === 'create' ? '/products/' : `/products/${id}`;
+                
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-API-Key': document.getElementById('api-key-input').value 
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('p-name').value,
+                        description: document.getElementById('p-desc').value,
+                        price: parseFloat(document.getElementById('p-price').value)
+                    })
                 });
 
-                if (res.ok) {
-                    document.getElementById('modal').style.display = 'none';
-                    fetchCatalog();
-                } else {
-                    alert("ERROR: ACCESS_DENIED. Check API Key.");
-                }
+                if (res.ok) { closeModal(); fetchCatalog(); } 
+                else { alert("AUTH_FAILURE: Check API Key"); }
             }
+
+            async function deleteProduct(id) {
+                if (!confirm("CONFIRM_DELETION?")) return;
+                const res = await fetch(`/products/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-API-Key': document.getElementById('api-key-input').value }
+                });
+                if (res.ok) fetchCatalog();
+                else alert("AUTH_FAILURE");
+            }
+
             fetchCatalog();
         </script>
     </body>
@@ -124,3 +150,18 @@ def create_product(product: dict, db: Session = Depends(get_db)):
     )
     db.commit()
     return {"status": "SUCCESS"}
+
+@app.put("/products/{product_id}", dependencies=[Depends(verify_api_key)])
+def update_product(product_id: int, product: dict, db: Session = Depends(get_db)):
+    db.execute(
+        text("UPDATE products SET name=:name, description=:description, price=:price WHERE id=:id"),
+        {"name": product.get("name"), "description": product.get("description"), "price": product.get("price"), "id": product_id}
+    )
+    db.commit()
+    return {"status": "UPDATED"}
+
+@app.delete("/products/{product_id}", dependencies=[Depends(verify_api_key)])
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    db.execute(text("DELETE FROM products WHERE id=:id"), {"id": product_id})
+    db.commit()
+    return {"status": "DELETED"}
