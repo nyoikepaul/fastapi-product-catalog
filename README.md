@@ -12,6 +12,7 @@ make install
 make test
 make docker-run  # App runs at http://localhost:8000
 ```
+https://fastapi-product-catalog.vercel.app/redoc
 
 ## 📌 API Endpoints
 | Method | Endpoint | Description | Auth |
