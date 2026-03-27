@@ -1137,7 +1137,7 @@ async function save(id){
   const btn=document.getElementById('savBtn');
   btn.disabled=true; btn.textContent=id?'Saving…':'Creating…';
   try{
-    const body={name,description:desc,price,stock_quantity:qty};
+    const body={name,description:desc,price,stock_stock_quantity:qty};
     if(id) await req(`/products/${id}`,{method:'PUT',body:JSON.stringify(body)});
     else    await req('/products',{method:'POST',body:JSON.stringify(body)});
     toast('ok',id?`"${name}" updated`:`"${name}" created`);
