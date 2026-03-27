@@ -1,4 +1,4 @@
-# 🚀 FastAPI Product Catalog
+# FastAPI Product Catalog
 
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115.2-009688.svg)
@@ -6,20 +6,22 @@
 
 A high-performance, modular Product Catalog API. Built for speed, security, and developer experience.
 
-## 🛠 Quick Start
-```bash
+## Quick Start
+bash
 make install
 make test
 make docker-run  # App runs at http://localhost:8000
-```
+
 https://fastapi-product-catalog.vercel.app/redoc
 
-## 📌 API Endpoints
+## API Endpoints
 | Method | Endpoint | Description | Auth |
 | :--- | :--- | :--- | :--- |
 | GET | `/` | Health Check / Welcome | None |
 | GET | `/products/` | List all products | None |
 | POST | `/products/` | Create new product | API Key |
+<img width="1366" height="677" alt="image" src="https://github.com/user-attachments/assets/dd0a0220-597d-48a5-ab6a-ca17f91f1c8d" />
+
 
 ---
 ⭐ **Star this repo if you love clean, modular backends!**
