@@ -1,278 +1,1198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Catalog • Expert</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    .toast { animation: slideIn 0.3s ease; }
-    @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
-    .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Catalog · Product Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════ */
+:root {
+  --void:    #06060a;
+  --ink:     #0c0c14;
+  --surface: #11111c;
+  --card:    #161622;
+  --lift:    #1c1c2c;
+  --rim:     #232336;
+  --rim2:    #2e2e48;
+  --text:    #e4e4f0;
+  --dim:     #8888a8;
+  --ghost:   #44445a;
+  --lime:    #c8ff00;
+  --lime2:   #e0ff66;
+  --glow:    rgba(200,255,0,0.12);
+  --red:     #ff4466;
+  --red-bg:  rgba(255,68,102,0.08);
+  --green:   #3ddc84;
+  --blue:    #4488ff;
+  --warn:    #ffaa00;
+  --ease:    cubic-bezier(0.16,1,0.3,1);
+  --ease2:   cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ═══════════════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { height:100%; }
+body {
+  min-height:100vh;
+  background:var(--void);
+  color:var(--text);
+  font-family:'Manrope',sans-serif;
+  font-size:14px;
+  line-height:1.6;
+  overflow-x:hidden;
+  /* Noise texture */
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-attachment:fixed;
+}
+::selection { background:var(--lime); color:#000; }
+input,select,textarea,button { font-family:inherit; }
+button { cursor:pointer; }
+a { color:inherit; text-decoration:none; }
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--rim2); border-radius:2px; }
+
+/* ═══════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════ */
+.shell { display:grid; grid-template-columns:280px 1fr; grid-template-rows:56px 1fr; min-height:100vh; }
+.topbar  { grid-column:1/-1; grid-row:1; }
+.sidebar { grid-column:1;     grid-row:2; }
+.main    { grid-column:2;     grid-row:2; }
+
+@media(max-width:960px) {
+  .shell { grid-template-columns:1fr; }
+  .sidebar { grid-column:1; grid-row:3; display:none; }
+  .sidebar.mob-show { display:flex; position:fixed; inset:0; z-index:300; width:min(280px,90vw); }
+  .main { grid-column:1; grid-row:2; }
+}
+
+/* ═══════════════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════════════ */
+.topbar {
+  display:flex; align-items:center; gap:1rem;
+  padding:0 1.25rem;
+  background:color-mix(in srgb, var(--ink) 90%, transparent);
+  border-bottom:1px solid var(--rim);
+  backdrop-filter:blur(16px);
+  position:sticky; top:0; z-index:100;
+}
+.t-logo {
+  display:flex; align-items:center; gap:.6rem;
+  font-family:'Manrope',sans-serif; font-weight:800;
+  font-size:.92rem; letter-spacing:-.01em;
+  white-space:nowrap;
+}
+.t-logo-mark {
+  width:28px; height:28px; border-radius:6px;
+  background:var(--lime); display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.t-logo-mark svg { width:14px; height:14px; }
+.t-logo span { color:var(--lime); }
+
+/* command search */
+.t-search {
+  flex:1; max-width:360px; position:relative;
+}
+.t-search-btn {
+  width:100%; background:var(--surface); border:1px solid var(--rim);
+  border-radius:8px; padding:.42rem .75rem .42rem 2rem;
+  color:var(--ghost); font-size:.8rem; font-family:'IBM Plex Mono',monospace;
+  display:flex; align-items:center; justify-content:space-between;
+  transition:all .2s; cursor:text; text-align:left;
+}
+.t-search-btn:hover { border-color:var(--rim2); color:var(--dim); }
+.t-search-icon { position:absolute; left:.6rem; top:50%; transform:translateY(-50%); color:var(--ghost); pointer-events:none; }
+.t-search-kbd {
+  background:var(--rim); border-radius:4px; padding:.1rem .4rem;
+  font-size:.65rem; letter-spacing:.04em; color:var(--ghost);
+}
+
+/* topbar stats */
+.t-stats { display:flex; gap:.25rem; margin-left:.5rem; }
+.t-stat {
+  display:flex; align-items:center; gap:.4rem;
+  padding:.28rem .7rem; border-radius:20px;
+  background:var(--surface); border:1px solid var(--rim);
+  font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--dim);
+  white-space:nowrap;
+}
+.t-stat strong { color:var(--text); font-weight:500; }
+.t-stat .dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.dot-lime { background:var(--lime); box-shadow:0 0 6px var(--lime); }
+.dot-red  { background:var(--red); }
+.dot-dim  { background:var(--ghost); }
+
+.t-right { margin-left:auto; display:flex; align-items:center; gap:.5rem; }
+.mob-filter-btn {
+  display:none; background:none; border:1px solid var(--rim);
+  border-radius:7px; padding:.38rem .7rem; color:var(--dim);
+  font-size:.78rem; align-items:center; gap:.4rem;
+  transition:all .2s;
+}
+.mob-filter-btn:hover { border-color:var(--rim2); color:var(--text); }
+@media(max-width:960px) { .mob-filter-btn { display:flex; } .t-stats { display:none; } }
+
+/* ═══════════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; gap:.4rem;
+  border-radius:8px; padding:.48rem 1rem;
+  font-size:.8rem; font-weight:600; letter-spacing:.01em;
+  border:none; transition:all .2s var(--ease); white-space:nowrap;
+  line-height:1;
+}
+.btn-lime {
+  background:var(--lime); color:#000;
+}
+.btn-lime:hover { background:var(--lime2); transform:translateY(-1px); box-shadow:0 6px 20px var(--glow); }
+.btn-lime:active { transform:translateY(0); }
+.btn-ghost {
+  background:none; border:1px solid var(--rim); color:var(--dim);
+}
+.btn-ghost:hover { border-color:var(--rim2); color:var(--text); background:var(--surface); }
+.btn-kill {
+  background:var(--red-bg); border:1px solid rgba(255,68,102,.2);
+  color:var(--red);
+}
+.btn-kill:hover { background:rgba(255,68,102,.15); }
+.btn-sm { padding:.35rem .75rem; font-size:.75rem; }
+.btn-xs { padding:.25rem .55rem; font-size:.7rem; border-radius:6px; }
+.btn-ico { padding:.38rem; border-radius:7px; }
+
+/* ═══════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════ */
+.sidebar {
+  background:var(--ink);
+  border-right:1px solid var(--rim);
+  display:flex; flex-direction:column;
+  height:calc(100vh - 56px);
+  position:sticky; top:56px;
+  overflow-y:auto;
+}
+.sb-section { padding:1.1rem 1.25rem; border-bottom:1px solid var(--rim); }
+.sb-label {
+  font-family:'IBM Plex Mono',monospace; font-size:.62rem;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ghost);
+  margin-bottom:.6rem; display:flex; align-items:center; gap:.4rem;
+}
+
+/* API key */
+.api-wrap { position:relative; }
+.api-inp {
+  width:100%; background:var(--surface); border:1px solid var(--rim);
+  border-radius:8px; padding:.52rem .52rem .52rem .78rem;
+  color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:.72rem;
+  letter-spacing:.04em; outline:none; transition:border-color .2s, box-shadow .2s;
+  padding-right:2.4rem;
+}
+.api-inp:focus { border-color:var(--lime); box-shadow:0 0 0 3px var(--glow); }
+.api-inp::placeholder { color:var(--ghost); }
+.api-eye {
+  position:absolute; right:.52rem; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--ghost); display:flex;
+  padding:.2rem; transition:color .15s; line-height:1;
+}
+.api-eye:hover { color:var(--dim); }
+.api-status {
+  display:flex; align-items:center; gap:.45rem;
+  margin-top:.45rem; font-family:'IBM Plex Mono',monospace; font-size:.65rem;
+}
+.api-pill {
+  padding:.12rem .5rem; border-radius:20px; font-size:.6rem;
+  letter-spacing:.08em; text-transform:uppercase; font-weight:600;
+}
+.pill-off { background:rgba(255,255,255,.04); color:var(--ghost); }
+.pill-on  { background:rgba(200,255,0,.12); color:var(--lime); border:1px solid rgba(200,255,0,.2); }
+
+/* search */
+.sb-search { position:relative; }
+.sb-search-ic { position:absolute; left:.65rem; top:50%; transform:translateY(-50%); color:var(--ghost); pointer-events:none; display:flex; }
+.sb-inp {
+  width:100%; background:var(--surface); border:1px solid var(--rim);
+  border-radius:8px; padding:.52rem .52rem .52rem 2.1rem;
+  color:var(--text); outline:none; transition:border-color .2s;
+  padding-right:2.2rem; font-size:.85rem;
+}
+.sb-inp::placeholder { color:var(--ghost); }
+.sb-inp:focus { border-color:var(--rim2); }
+.sb-clear {
+  position:absolute; right:.52rem; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--ghost); display:none;
+  align-items:center; padding:.15rem; line-height:1; transition:color .15s;
+}
+.sb-clear.on { display:flex; }
+.sb-clear:hover { color:var(--text); }
+
+/* price range */
+.price-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+.price-label { font-family:'IBM Plex Mono',monospace; font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ghost); margin-bottom:.3rem; }
+.num-inp {
+  width:100%; background:var(--surface); border:1px solid var(--rim);
+  border-radius:7px; padding:.48rem .65rem;
+  color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:.78rem;
+  outline:none; transition:border-color .2s;
+}
+.num-inp:focus { border-color:var(--rim2); }
+.num-inp::-webkit-inner-spin-button { opacity:.3; }
+
+/* toggle switch */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+.toggle-txt { font-size:.84rem; color:var(--dim); }
+.toggle-sw {
+  width:36px; height:20px; border-radius:10px; background:var(--surface);
+  border:1px solid var(--rim); position:relative; transition:all .25s var(--ease);
+  flex-shrink:0;
+}
+.toggle-sw::after {
+  content:''; position:absolute; top:2px; left:2px;
+  width:14px; height:14px; border-radius:50%; background:var(--ghost);
+  transition:all .25s var(--ease);
+}
+.toggle-sw.on { background:var(--lime); border-color:var(--lime); }
+.toggle-sw.on::after { left:18px; background:#000; }
+
+/* sort */
+.sort-sel {
+  width:100%; background:var(--surface); border:1px solid var(--rim);
+  border-radius:8px; padding:.52rem .75rem; color:var(--text);
+  outline:none; appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2344445a' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right .75rem center;
+  padding-right:2rem; font-size:.84rem; transition:border-color .2s;
+}
+.sort-sel:focus { border-color:var(--rim2); outline:none; }
+
+/* refresh */
+.refresh {
+  width:100%; background:none; border:1px solid var(--rim);
+  border-radius:8px; padding:.6rem;
+  color:var(--ghost); display:flex; align-items:center; justify-content:center; gap:.55rem;
+  font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase;
+  transition:all .2s; margin-top:auto;
+}
+.refresh:hover { border-color:var(--lime); color:var(--lime); }
+.refresh svg { transition:transform .5s var(--ease); }
+.refresh:hover svg { transform:rotate(180deg); }
+.refresh.spinning svg { animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* sidebar bottom stats */
+.sb-stats {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+  background:var(--rim); border-top:1px solid var(--rim);
+}
+.sb-stat { background:var(--ink); padding:.85rem .5rem; text-align:center; }
+.sb-stat-n {
+  font-family:'Fraunces',serif; font-size:1.5rem; font-weight:600;
+  color:var(--lime); line-height:1; font-variant-numeric:tabular-nums;
+}
+.sb-stat-l { font-family:'IBM Plex Mono',monospace; font-size:.55rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ghost); margin-top:.2rem; }
+
+/* ═══════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════ */
+.main { display:flex; flex-direction:column; min-height:calc(100vh - 56px); }
+
+/* filter chips bar */
+.chips-bar {
+  padding:.65rem 1.5rem;
+  border-bottom:1px solid var(--rim);
+  display:none; align-items:center; gap:.4rem; flex-wrap:wrap;
+  background:color-mix(in srgb, var(--surface) 50%, transparent);
+}
+.chips-bar.has-chips { display:flex; }
+.chips-label { font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ghost); }
+.chip {
+  display:inline-flex; align-items:center; gap:.3rem;
+  padding:.18rem .55rem; border-radius:20px;
+  background:rgba(200,255,0,.08); border:1px solid rgba(200,255,0,.2);
+  color:var(--lime); font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.04em;
+}
+.chip button { background:none; border:none; color:inherit; display:flex; padding:0; line-height:1; opacity:.6; transition:opacity .15s; }
+.chip button:hover { opacity:1; }
+
+/* content */
+.content { padding:1.5rem; flex:1; }
+
+/* view row */
+.view-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; gap:1rem; flex-wrap:wrap; }
+.result-txt { font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ghost); }
+.result-txt strong { color:var(--text); font-weight:500; }
+.view-tgl { display:flex; gap:.25rem; }
+.vtgl {
+  background:none; border:1px solid var(--rim); border-radius:7px;
+  padding:.32rem .5rem; color:var(--ghost); display:flex;
+  align-items:center; transition:all .18s;
+}
+.vtgl.on { background:var(--surface); border-color:var(--rim2); color:var(--text); }
+.vtgl:hover:not(.on) { border-color:var(--rim2); }
+
+/* ═══════════════════════════════════════════════════
+   PRODUCT GRID
+═══════════════════════════════════════════════════ */
+.prod-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+  gap:1px;
+  background:var(--rim);
+  border:1px solid var(--rim);
+  border-radius:12px;
+  overflow:hidden;
+}
+.prod-grid.list { grid-template-columns:1fr; }
+
+/* card */
+.card {
+  background:var(--card);
+  padding:1.25rem;
+  display:flex; flex-direction:column; gap:.75rem;
+  position:relative; overflow:hidden;
+  cursor:pointer;
+  transition:background .2s;
+  animation:cardIn .45s var(--ease) both;
+}
+.card::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(200,255,0,.06) 0%, transparent 60%);
+  opacity:0; transition:opacity .3s;
+}
+.card::after {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:1.5px;
+  background:linear-gradient(90deg, var(--lime), var(--blue));
+  transform:scaleX(0); transform-origin:left;
+  transition:transform .35s var(--ease);
+}
+.card:hover { background:var(--lift); }
+.card:hover::before { opacity:1; }
+.card:hover::after { transform:scaleX(1); }
+
+/* list mode */
+.prod-grid.list .card {
+  flex-direction:row; align-items:center; gap:1rem; padding:1rem 1.25rem;
+}
+.prod-grid.list .card-body { flex:1; display:flex; align-items:center; gap:1.5rem; }
+.prod-grid.list .card-name { font-size:.88rem; }
+.prod-grid.list .card-desc { display:none; }
+.prod-grid.list .card-price { font-size:1.25rem; min-width:100px; }
+.prod-grid.list .card-foot { flex-direction:row; }
+
+@keyframes cardIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+.card:nth-child(1){animation-delay:.03s} .card:nth-child(2){animation-delay:.06s}
+.card:nth-child(3){animation-delay:.09s} .card:nth-child(4){animation-delay:.12s}
+.card:nth-child(5){animation-delay:.15s} .card:nth-child(6){animation-delay:.18s}
+.card:nth-child(7){animation-delay:.21s} .card:nth-child(8){animation-delay:.24s}
+
+.card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; }
+.card-name { font-weight:700; font-size:.9rem; line-height:1.35; flex:1; }
+.stock-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+.stock-dot.in  { background:var(--lime); box-shadow:0 0 8px rgba(200,255,0,.5); }
+.stock-dot.out { background:var(--red); }
+
+.card-desc {
+  font-size:.78rem; color:var(--dim); line-height:1.6;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+
+.card-price {
+  font-family:'Fraunces',serif; font-style:italic;
+  font-size:1.65rem; line-height:1; color:var(--text); font-weight:400;
+  letter-spacing:-.02em;
+}
+.card-price .cur { font-size:.75rem; font-style:normal; color:var(--ghost); margin-right:.15rem; font-family:'IBM Plex Mono',monospace; }
+
+.card-foot { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.card-qty { font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ghost); }
+.card-qty strong { color:var(--dim); }
+.card-acts { display:flex; gap:.3rem; opacity:0; transition:opacity .2s; }
+.card:hover .card-acts { opacity:1; }
+
+/* ═══════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════ */
+.empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:5rem 2rem; gap:1.5rem; text-align:center;
+  grid-column:1/-1;
+}
+.empty-ring {
+  width:96px; height:96px; border-radius:50%;
+  border:1px solid var(--rim);
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+  color:var(--ghost);
+}
+.empty-ring::before {
+  content:''; position:absolute; inset:-1px;
+  border-radius:50%;
+  background:conic-gradient(var(--lime) 0deg, transparent 90deg);
+  animation:ringrot 3s linear infinite;
+  -webkit-mask:radial-gradient(circle, transparent calc(100% - 1px), black calc(100% - 1px));
+  mask:radial-gradient(circle, transparent calc(100% - 1px), black calc(100% - 1px));
+}
+@keyframes ringrot { to { transform:rotate(360deg); } }
+.empty h3 { font-family:'Fraunces',serif; font-size:1.6rem; font-weight:600; color:var(--dim); }
+.empty p { font-size:.84rem; color:var(--ghost); max-width:300px; line-height:1.7; }
+
+/* ═══════════════════════════════════════════════════
+   SKELETON
+═══════════════════════════════════════════════════ */
+.skel {
+  background:linear-gradient(90deg, var(--card) 25%, var(--lift) 50%, var(--card) 75%);
+  background-size:400% 100%;
+  animation:shimmer 1.3s ease infinite;
+  border-radius:5px;
+}
+@keyframes shimmer { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
+
+/* ═══════════════════════════════════════════════════
+   COMMAND PALETTE
+═══════════════════════════════════════════════════ */
+.cmd-overlay {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(0,0,0,.7); backdrop-filter:blur(12px);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding-top:15vh;
+  opacity:0; pointer-events:none;
+  transition:opacity .2s;
+}
+.cmd-overlay.open { opacity:1; pointer-events:all; }
+.cmd-box {
+  background:var(--surface); border:1px solid var(--rim2);
+  border-radius:14px; width:100%; max-width:520px;
+  box-shadow:0 32px 80px rgba(0,0,0,.8);
+  overflow:hidden;
+  transform:translateY(-12px) scale(.98);
+  transition:transform .3s var(--ease2);
+}
+.cmd-overlay.open .cmd-box { transform:none; }
+.cmd-inp-wrap { display:flex; align-items:center; gap:.75rem; padding:.9rem 1.1rem; border-bottom:1px solid var(--rim); }
+.cmd-inp {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-size:1rem; font-family:'Manrope',sans-serif;
+}
+.cmd-inp::placeholder { color:var(--ghost); }
+.cmd-results { max-height:350px; overflow-y:auto; }
+.cmd-item {
+  display:flex; align-items:center; gap:.75rem;
+  padding:.7rem 1.1rem; cursor:pointer; transition:background .15s;
+}
+.cmd-item:hover, .cmd-item.sel { background:var(--card); }
+.cmd-item-name { font-weight:600; font-size:.88rem; }
+.cmd-item-meta { font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ghost); margin-left:auto; }
+.cmd-item-price { font-family:'Fraunces',serif; font-style:italic; font-size:1rem; color:var(--lime); }
+.cmd-empty { padding:2rem; text-align:center; color:var(--ghost); font-size:.84rem; }
+.cmd-footer { padding:.5rem 1.1rem; border-top:1px solid var(--rim); display:flex; gap:1rem; }
+.cmd-hint { font-family:'IBM Plex Mono',monospace; font-size:.62rem; color:var(--ghost); display:flex; align-items:center; gap:.3rem; }
+.cmd-key { background:var(--rim); border-radius:4px; padding:.1rem .4rem; font-size:.65rem; }
+
+/* ═══════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════ */
+.modal-bg {
+  position:fixed; inset:0; z-index:400;
+  background:rgba(0,0,0,.75); backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center; padding:1.5rem;
+  opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.modal-bg.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--surface); border:1px solid var(--rim2);
+  border-radius:14px; width:100%; max-width:500px;
+  max-height:90vh; overflow-y:auto;
+  transform:translateY(20px) scale(.97);
+  transition:transform .4s var(--ease2);
+  box-shadow:0 40px 100px rgba(0,0,0,.9);
+}
+.modal-bg.open .modal { transform:none; }
+.modal-hd {
+  padding:1.35rem 1.5rem; border-bottom:1px solid var(--rim);
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; background:var(--surface); z-index:1;
+}
+.modal-hd h2 { font-family:'Fraunces',serif; font-size:1.35rem; font-weight:600; letter-spacing:-.01em; }
+.modal-x {
+  background:none; border:none; color:var(--ghost);
+  display:flex; border-radius:7px; padding:.3rem; transition:all .15s;
+}
+.modal-x:hover { background:var(--card); color:var(--text); }
+.modal-body { padding:1.5rem; display:flex; flex-direction:column; gap:1.1rem; }
+.modal-ft { padding:1.1rem 1.5rem; border-top:1px solid var(--rim); display:flex; gap:.6rem; justify-content:flex-end; }
+
+/* form */
+.fg { display:flex; flex-direction:column; gap:.4rem; }
+.fl {
+  font-family:'IBM Plex Mono',monospace; font-size:.65rem;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--ghost);
+}
+.fi {
+  background:var(--card); border:1px solid var(--rim); border-radius:8px;
+  padding:.65rem .85rem; color:var(--text); outline:none; width:100%;
+  font-size:.88rem; transition:border-color .2s, box-shadow .2s;
+}
+.fi:focus { border-color:var(--lime); box-shadow:0 0 0 3px var(--glow); }
+.fi::placeholder { color:var(--ghost); }
+.ftarea { resize:vertical; min-height:80px; font-family:'Manrope',sans-serif; line-height:1.6; }
+.fgrid2 { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
+.ferr { font-family:'IBM Plex Mono',monospace; font-size:.67rem; color:var(--red); letter-spacing:.03em; }
+
+/* detail modal */
+.detail-price {
+  font-family:'Fraunces',serif; font-style:italic;
+  font-size:3rem; line-height:1; color:var(--lime); font-weight:400;
+  letter-spacing:-.02em;
+}
+.detail-price sup { font-size:1.1rem; color:var(--ghost); font-style:normal; font-family:'IBM Plex Mono',monospace; }
+.dm { display:flex; flex-direction:column; gap:0; }
+.dm-row { display:flex; justify-content:space-between; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--rim); font-size:.84rem; }
+.dm-row:last-child { border:none; }
+.dm-k { font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ghost); }
+
+/* del box */
+.del-box {
+  background:rgba(255,68,102,.06); border:1px solid rgba(255,68,102,.18);
+  border-radius:9px; padding:1rem 1.1rem;
+  font-size:.84rem; color:var(--dim); line-height:1.7;
+}
+
+/* ═══════════════════════════════════════════════════
+   TOASTS
+═══════════════════════════════════════════════════ */
+.toasts { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:.4rem; pointer-events:none; }
+.toast {
+  display:flex; align-items:center; gap:.6rem;
+  padding:.65rem 1rem; border-radius:10px; border:1px solid;
+  font-family:'IBM Plex Mono',monospace; font-size:.74rem; letter-spacing:.03em;
+  min-width:220px; max-width:340px; pointer-events:all;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  animation:toastIn .3s var(--ease2) both;
+}
+.toast.out { animation:toastOut .25s var(--ease) both; }
+.toast-ok  { background:rgba(61,220,132,.08); border-color:rgba(61,220,132,.25); color:var(--green); }
+.toast-err { background:rgba(255,68,102,.08); border-color:rgba(255,68,102,.25); color:var(--red); }
+.toast-inf { background:rgba(68,136,255,.08); border-color:rgba(68,136,255,.25); color:var(--blue); }
+@keyframes toastIn  { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:none} }
+@keyframes toastOut { to{opacity:0;transform:translateX(16px)} }
+
+/* ═══════════════════════════════════════════════════
+   MOBILE SIDEBAR BACKDROP
+═══════════════════════════════════════════════════ */
+.sb-backdrop {
+  display:none; position:fixed; inset:0; z-index:299;
+  background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+}
+.sb-backdrop.on { display:block; }
+
+/* FAB */
+.fab {
+  display:none; position:fixed; bottom:1.5rem; right:1.5rem; z-index:200;
+  width:50px; height:50px; border-radius:50%;
+  background:var(--lime); color:#000; border:none;
+  align-items:center; justify-content:center;
+  box-shadow:0 8px 24px rgba(200,255,0,.3);
+  transition:transform .2s var(--ease2), box-shadow .2s;
+}
+.fab:hover { transform:scale(1.08); box-shadow:0 12px 32px rgba(200,255,0,.4); }
+@media(max-width:960px) { .fab { display:flex; } }
+</style>
 </head>
-<body class="bg-gray-950 text-white">
-  <div class="flex h-screen overflow-hidden">
-    <div class="w-96 bg-gray-900 border-r border-gray-800 flex flex-col p-8">
-      <div class="flex items-center gap-3 mb-10">
-        <i class="fa-solid fa-boxes-stacked text-4xl text-emerald-500"></i>
-        <h1 class="text-4xl font-bold tracking-tighter">Catalog</h1>
+<body>
+
+<div class="shell">
+
+  <!-- ═══ TOPBAR ═══ -->
+  <header class="topbar">
+    <div class="t-logo">
+      <div class="t-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+          <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
       </div>
+      Cata<span>log</span>
+    </div>
 
-      <div class="space-y-8">
-        <div>
-          <label class="text-xs uppercase tracking-widest text-gray-500 mb-2 block">X-API-KEY</label>
-          <input id="apiKey" type="password" placeholder="Paste your X-API-Key" 
-                 class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 text-sm focus:border-emerald-500 focus:outline-none">
-        </div>
+    <div class="t-search">
+      <span class="t-search-icon">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <button class="t-search-btn" onclick="openCmd()">
+        Search products…
+        <span class="t-search-kbd">⌘K</span>
+      </button>
+    </div>
 
-        <div>
-          <label class="text-xs uppercase tracking-widest text-gray-500 mb-2 block">Search Products</label>
-          <div class="relative">
-            <input id="searchInput" type="text" placeholder="Name or description..." 
-                   class="w-full bg-gray-800 border border-gray-700 rounded-3xl px-6 py-4 pl-12 text-sm focus:border-emerald-500 focus:outline-none">
-            <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-500"></i>
-          </div>
-        </div>
+    <div class="t-stats">
+      <div class="t-stat"><span class="dot dot-lime"></span><span><strong id="ts-total">—</strong> total</span></div>
+      <div class="t-stat"><span class="dot dot-lime"></span><span><strong id="ts-stock">—</strong> in stock</span></div>
+      <div class="t-stat"><span class="dot dot-dim"></span><span>avg <strong id="ts-avg">—</strong></span></div>
+    </div>
 
+    <div class="t-right">
+      <button class="mob-filter-btn" onclick="openSidebar()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        Filters
+      </button>
+      <button class="btn btn-lime btn-sm" onclick="openNew()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        New Product
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sb-section">
+      <div class="sb-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        X-API-Key
+      </div>
+      <div class="api-wrap">
+        <input class="api-inp" id="apiKey" type="password" placeholder="Paste API key…" autocomplete="off"/>
+        <button class="api-eye" id="apiEye" title="Toggle visibility">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="api-status">
+        <span class="api-pill pill-off" id="apiPill">NOT SET</span>
+        <span id="apiNote" style="color:var(--ghost);font-family:'IBM Plex Mono',monospace;font-size:.62rem">Enter key to fetch products</span>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search
+      </div>
+      <div class="sb-search">
+        <span class="sb-search-ic">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input class="sb-inp" id="sbSearch" type="text" placeholder="Name or description…"/>
+        <button class="sb-clear" id="sbClear">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        Filters
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.85rem">
         <div>
-          <label class="text-xs uppercase tracking-widest text-gray-500 mb-3 block">Filters & Sort</label>
-          <div class="space-y-5">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-xs text-gray-400">Min Price</label>
-                <input id="minPrice" type="number" placeholder="0" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
-              </div>
-              <div>
-                <label class="text-xs text-gray-400">Max Price</label>
-                <input id="maxPrice" type="number" placeholder="999" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
-              </div>
-            </div>
-            <div class="flex items-center gap-3">
-              <input id="inStockOnly" type="checkbox" class="w-5 h-5 accent-emerald-500">
-              <label class="text-sm">In stock only</label>
+          <div class="price-label">Price Range</div>
+          <div class="price-grid">
+            <div>
+              <div class="price-label" style="margin-bottom:.25rem">Min</div>
+              <input class="num-inp" id="minP" type="number" value="0" min="0" placeholder="0"/>
             </div>
             <div>
-              <label class="text-xs text-gray-400">Sort by</label>
-              <select id="sortSelect" class="w-full mt-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 text-sm">
-                <option value="name-asc">Name A-Z</option>
-                <option value="price-desc">Price High-Low</option>
-              </select>
+              <div class="price-label" style="margin-bottom:.25rem">Max</div>
+              <input class="num-inp" id="maxP" type="number" value="99999" min="0" placeholder="∞"/>
             </div>
           </div>
         </div>
-
-        <button onclick="loadProducts()" 
-                class="w-full bg-emerald-600 hover:bg-emerald-700 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2 transition">
-          <i class="fa-solid fa-rotate"></i> Refresh from Server
-        </button>
+        <div class="toggle-row" onclick="toggleStock()">
+          <span class="toggle-txt">In stock only</span>
+          <div class="toggle-sw" id="stockSw"></div>
+        </div>
       </div>
     </div>
 
-    <div class="flex-1 flex flex-col">
-      <div class="bg-gray-900 px-10 py-6 border-b border-gray-800 flex items-center justify-between">
-        <div>
-          <h2 class="text-3xl font-semibold">All Products</h2>
-          <p id="countText" class="text-gray-400 text-sm">0 products</p>
-        </div>
-        <button onclick="showCreateModal()" 
-                class="bg-emerald-500 hover:bg-emerald-600 px-8 py-4 rounded-3xl flex items-center gap-3 font-medium transition">
-          <i class="fa-solid fa-plus"></i> New Product
-        </button>
+    <div class="sb-section">
+      <div class="sb-label">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+        Sort
       </div>
+      <select class="sort-sel" id="sortSel">
+        <option value="name_asc">Name A → Z</option>
+        <option value="name_desc">Name Z → A</option>
+        <option value="price_asc">Price: Low → High</option>
+        <option value="price_desc">Price: High → Low</option>
+        <option value="qty_desc">Stock: Most First</option>
+        <option value="qty_asc">Stock: Least First</option>
+      </select>
+    </div>
 
-      <div id="productsGrid" class="flex-1 p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 overflow-auto"></div>
+    <div style="padding:.85rem 1.25rem;margin-top:auto">
+      <button class="refresh" id="refreshBtn" onclick="load()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+          <path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+          <path d="M8 16H3v5"/>
+        </svg>
+        Refresh from API
+      </button>
+    </div>
 
-      <div id="pagination" class="bg-gray-900 border-t border-gray-800 px-10 py-5 flex justify-between items-center text-sm"></div>
+    <div class="sb-stats">
+      <div class="sb-stat"><div class="sb-stat-n" id="ss-total">—</div><div class="sb-stat-l">Products</div></div>
+      <div class="sb-stat"><div class="sb-stat-n" id="ss-stock">—</div><div class="sb-stat-l">In Stock</div></div>
+      <div class="sb-stat"><div class="sb-stat-n" id="ss-val">—</div><div class="sb-stat-l">Avg KES</div></div>
+    </div>
+  </aside>
+
+  <div class="sb-backdrop" id="sbBack" onclick="closeSidebar()"></div>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+
+    <!-- active chips -->
+    <div class="chips-bar" id="chipsBar"></div>
+
+    <div class="content">
+      <div class="view-row">
+        <div class="result-txt" id="resultTxt"></div>
+        <div class="view-tgl">
+          <button class="vtgl on" id="vGrid" title="Grid" onclick="setView('grid')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+          <button class="vtgl" id="vList" title="List" onclick="setView('list')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h13M9 12h13M9 18h13M4 6h.01M4 12h.01M4 18h.01"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="grid" class="prod-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openNew()" title="New Product">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-overlay" id="cmdOverlay" onclick="handleCmdBg(event)">
+  <div class="cmd-box">
+    <div class="cmd-inp-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ghost)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="cmd-inp" id="cmdInp" placeholder="Search products…" oninput="renderCmd()" onkeydown="cmdKey(event)"/>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <span class="cmd-hint"><kbd class="cmd-key">↑↓</kbd> navigate</span>
+      <span class="cmd-hint"><kbd class="cmd-key">↵</kbd> select</span>
+      <span class="cmd-hint"><kbd class="cmd-key">Esc</kbd> close</span>
     </div>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div class="bg-gray-900 rounded-3xl w-full max-w-md p-8">
-      <h3 id="modalTitle" class="text-2xl font-bold mb-6">New Product</h3>
-      <form id="productForm" onsubmit="saveProduct(event)">
-        <input id="productId" type="hidden">
-        <input id="name" required placeholder="Product name" class="w-full mb-4 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4">
-        <textarea id="description" placeholder="Description" class="w-full mb-4 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 h-28"></textarea>
-        <div class="grid grid-cols-2 gap-4">
-          <input id="price" type="number" step="0.01" required placeholder="Price" class="bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4">
-          <input id="stock" type="number" required placeholder="Stock" class="bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4">
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="handleModalBg(event)">
+  <div class="modal" id="modal">
+    <div class="modal-hd">
+      <h2 id="mTitle">—</h2>
+      <button class="modal-x" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   STATE
+══════════════════════════════════ */
+const S = {
+  all:[], fil:[],
+  key: localStorage.getItem('cat_key')||'',
+  q:'', minP:0, maxP:99999, stockOnly:false,
+  sort:'name_asc', view:'grid', loading:false,
+  cmdSel:0,
+};
+const API='/api';
+
+/* ══════════════════════════════════
+   BOOT
+══════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  const k=document.getElementById('apiKey');
+  if(S.key){ k.value=S.key; syncApiUi(); }
+
+  k.addEventListener('input',e=>{
+    S.key=e.target.value.trim();
+    localStorage.setItem('cat_key',S.key);
+    syncApiUi();
+  });
+  document.getElementById('apiEye').addEventListener('click',()=>{
+    k.type=k.type==='password'?'text':'password';
+  });
+  document.getElementById('sbSearch').addEventListener('input',e=>{
+    S.q=e.target.value;
+    document.getElementById('sbClear').classList.toggle('on',!!S.q);
+    filter();
+  });
+  document.getElementById('sbClear').addEventListener('click',()=>{
+    S.q=''; document.getElementById('sbSearch').value='';
+    document.getElementById('sbClear').classList.remove('on'); filter();
+  });
+  document.getElementById('minP').addEventListener('input',e=>{ S.minP=+e.target.value||0; filter(); });
+  document.getElementById('maxP').addEventListener('input',e=>{ S.maxP=+e.target.value||99999; filter(); });
+  document.getElementById('sortSel').addEventListener('change',e=>{ S.sort=e.target.value; filter(); });
+
+  document.addEventListener('keydown',e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key==='k'){ e.preventDefault(); openCmd(); }
+    if(e.key==='Escape'){ closeCmd(); closeModal(); }
+  });
+
+  load();
+});
+
+/* ══════════════════════════════════
+   API
+══════════════════════════════════ */
+async function req(path,opts={}){
+  const h={'Content-Type':'application/json'};
+  if(S.key) h['X-API-Key']=S.key;
+  const r=await fetch(API+path,{...opts,headers:{...h,...(opts.headers||{})}});
+  if(!r.ok){ const e=await r.json().catch(()=>({detail:r.statusText})); throw new Error(e.detail||`HTTP ${r.status}`); }
+  return r.status===204?null:r.json();
+}
+
+async function load(){
+  S.loading=true;
+  const btn=document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  skelRender();
+  try{
+    S.all=await req('/products');
+    syncStats(); filter(); syncApiUi();
+  }catch(e){
+    toast('err',e.message||'Failed to load');
+    document.getElementById('grid').innerHTML=emptyHTML('API Error',e.message);
+  }finally{
+    S.loading=false; btn.classList.remove('spinning');
+  }
+}
+
+/* ══════════════════════════════════
+   FILTER + SORT
+══════════════════════════════════ */
+function filter(){
+  let f=[...S.all];
+  if(S.q){ const q=S.q.toLowerCase(); f=f.filter(p=>p.name?.toLowerCase().includes(q)||p.description?.toLowerCase().includes(q)); }
+  if(S.minP>0) f=f.filter(p=>p.price>=S.minP);
+  if(S.maxP<99999) f=f.filter(p=>p.price<=S.maxP);
+  if(S.stockOnly) f=f.filter(p=>p.quantity>0);
+  const[key,dir]=S.sort.split('_');
+  f.sort((a,b)=>{
+    let av=key==='name'?a.name?.toLowerCase():key==='price'?a.price:a.quantity;
+    let bv=key==='name'?b.name?.toLowerCase():key==='price'?b.price:b.quantity;
+    return av<bv?(dir==='asc'?-1:1):av>bv?(dir==='asc'?1:-1):0;
+  });
+  S.fil=f; render(); renderChips(); renderResultTxt();
+}
+
+function toggleStock(){
+  S.stockOnly=!S.stockOnly;
+  document.getElementById('stockSw').classList.toggle('on',S.stockOnly);
+  filter();
+}
+
+/* ══════════════════════════════════
+   RENDER
+══════════════════════════════════ */
+function skelRender(){
+  const g=document.getElementById('grid');
+  g.className='prod-grid';
+  g.innerHTML=Array(6).fill(0).map(()=>`
+    <div class="card" style="gap:1rem;cursor:default">
+      <div class="skel" style="height:12px;width:55%"></div>
+      <div class="skel" style="height:10px;width:85%"></div>
+      <div class="skel" style="height:10px;width:65%"></div>
+      <div class="skel" style="height:28px;width:45%;margin-top:.25rem"></div>
+    </div>`).join('');
+}
+
+function render(){
+  const g=document.getElementById('grid');
+  if(!S.fil.length){ g.innerHTML=emptyHTML(); return; }
+  g.className='prod-grid'+(S.view==='list'?' list':'');
+  g.innerHTML=S.fil.map((p,i)=>{
+    const inStock=p.quantity>0, lv=S.view==='list';
+    return `<div class="card" onclick="openDetail(${p.id})" style="animation-delay:${Math.min(i*.04,.4)}s">
+      <div${lv?' class="card-body"':''}>
+        <div class="card-head">
+          <div class="card-name">${esc(p.name)}</div>
+          <div class="stock-dot ${inStock?'in':'out'}" title="${inStock?'In Stock':'Out of Stock'}"></div>
         </div>
-        <div class="flex gap-4 mt-8">
-          <button type="button" onclick="hideModal()" class="flex-1 py-4 bg-gray-800 hover:bg-gray-700 rounded-2xl">Cancel</button>
-          <button type="submit" id="saveBtn" class="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-semibold">Save Product</button>
+        ${p.description&&!lv?`<div class="card-desc">${esc(p.description)}</div>`:''}
+        <div class="card-price"><span class="cur">KES</span>${fmt(p.price)}</div>
+      </div>
+      <div class="card-foot">
+        <div class="card-qty">Qty: <strong>${p.quantity??0}</strong></div>
+        <div class="card-acts" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-xs btn-ico" title="Edit" onclick="openEdit(${p.id})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-kill btn-xs btn-ico" title="Delete" onclick="askDelete(${p.id})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
         </div>
-      </form>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function emptyHTML(t='No Products',m='Add a product or adjust your filters.'){
+  return `<div class="empty">
+    <div class="empty-ring">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        <polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>
+      </svg>
+    </div>
+    <h3>${t}</h3><p>${m}</p>
+    <button class="btn btn-lime" onclick="openNew()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add Product
+    </button>
+  </div>`;
+}
+
+function renderChips(){
+  const bar=document.getElementById('chipsBar');
+  const chips=[];
+  if(S.q) chips.push(`<div class="chip">"${esc(S.q)}" <button onclick="clearQ()">✕</button></div>`);
+  if(S.minP>0) chips.push(`<div class="chip">Min KES ${S.minP}<button onclick="clearMin()">✕</button></div>`);
+  if(S.maxP<99999) chips.push(`<div class="chip">Max KES ${S.maxP}<button onclick="clearMax()">✕</button></div>`);
+  if(S.stockOnly) chips.push(`<div class="chip">In Stock<button onclick="toggleStock()">✕</button></div>`);
+  if(chips.length){ bar.classList.add('has-chips'); bar.innerHTML=`<span class="chips-label">Active</span>${chips.join('')}`; }
+  else { bar.classList.remove('has-chips'); bar.innerHTML=''; }
+}
+function clearQ(){ S.q=''; document.getElementById('sbSearch').value=''; document.getElementById('sbClear').classList.remove('on'); filter(); }
+function clearMin(){ S.minP=0; document.getElementById('minP').value=0; filter(); }
+function clearMax(){ S.maxP=99999; document.getElementById('maxP').value=99999; filter(); }
+
+function renderResultTxt(){
+  const el=document.getElementById('resultTxt');
+  const f=S.fil.length,a=S.all.length;
+  el.innerHTML=f===a?`Showing <strong>${f}</strong> product${f!==1?'s':''}`:`<strong>${f}</strong> of <strong>${a}</strong> products`;
+}
+
+function syncStats(){
+  const p=S.all;
+  const ins=p.filter(x=>x.quantity>0).length;
+  const avg=p.length?(p.reduce((s,x)=>s+(x.price||0),0)/p.length).toFixed(0):'—';
+  document.getElementById('ts-total').textContent=p.length;
+  document.getElementById('ts-stock').textContent=ins;
+  document.getElementById('ts-avg').textContent=p.length?`${avg}`:'—';
+  document.getElementById('ss-total').textContent=p.length||'—';
+  document.getElementById('ss-stock').textContent=ins||'—';
+  document.getElementById('ss-val').textContent=p.length?avg:'—';
+}
+
+function syncApiUi(){
+  const set=!!S.key;
+  document.getElementById('apiPill').textContent=set?'ACTIVE':'NOT SET';
+  document.getElementById('apiPill').className='api-pill '+(set?'pill-on':'pill-off');
+  document.getElementById('apiNote').textContent=set?'Key saved to browser':'Enter key to fetch products';
+}
+
+function setView(v){
+  S.view=v;
+  document.getElementById('vGrid').classList.toggle('on',v==='grid');
+  document.getElementById('vList').classList.toggle('on',v==='list');
+  render();
+}
+
+/* ══════════════════════════════════
+   COMMAND PALETTE
+══════════════════════════════════ */
+function openCmd(){
+  document.getElementById('cmdOverlay').classList.add('open');
+  document.getElementById('cmdInp').value='';
+  S.cmdSel=0; renderCmd();
+  setTimeout(()=>document.getElementById('cmdInp').focus(),50);
+}
+function closeCmd(){ document.getElementById('cmdOverlay').classList.remove('open'); }
+function handleCmdBg(e){ if(e.target===document.getElementById('cmdOverlay')) closeCmd(); }
+
+function renderCmd(){
+  const q=document.getElementById('cmdInp').value.toLowerCase();
+  const res=document.getElementById('cmdResults');
+  const items=S.all.filter(p=>!q||p.name?.toLowerCase().includes(q)||p.description?.toLowerCase().includes(q)).slice(0,8);
+  if(!items.length){ res.innerHTML=`<div class="cmd-empty">No products found</div>`; return; }
+  res.innerHTML=items.map((p,i)=>`
+    <div class="cmd-item${i===S.cmdSel?' sel':''}" onclick="cmdSelect(${p.id})">
+      <div class="stock-dot ${p.quantity>0?'in':'out'}" style="margin:0;flex-shrink:0"></div>
+      <div>
+        <div class="cmd-item-name">${esc(p.name)}</div>
+        ${p.description?`<div style="font-size:.72rem;color:var(--ghost)">${esc(p.description).slice(0,60)}…</div>`:''}
+      </div>
+      <div class="cmd-item-price"><span style="font-size:.65rem;color:var(--ghost);font-style:normal;font-family:'IBM Plex Mono',monospace">KES </span>${fmt(p.price)}</div>
+    </div>`).join('');
+}
+
+function cmdKey(e){
+  const items=document.querySelectorAll('.cmd-item');
+  if(e.key==='ArrowDown'){ e.preventDefault(); S.cmdSel=Math.min(S.cmdSel+1,items.length-1); renderCmd(); }
+  if(e.key==='ArrowUp'){ e.preventDefault(); S.cmdSel=Math.max(S.cmdSel-1,0); renderCmd(); }
+  if(e.key==='Enter'){ const sel=document.querySelector('.cmd-item.sel'); if(sel) sel.click(); }
+}
+
+function cmdSelect(id){ closeCmd(); setTimeout(()=>openDetail(id),100); }
+
+/* ══════════════════════════════════
+   MODAL
+══════════════════════════════════ */
+function showModal(title,html){
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mBody').innerHTML=html;
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+function handleModalBg(e){ if(e.target===document.getElementById('modalBg')) closeModal(); }
+
+/* form */
+function formHTML(p={}){
+  return `<div class="modal-body">
+    <div class="fg" style="grid-column:1/-1">
+      <label class="fl">Product Name *</label>
+      <input class="fi" id="fn" value="${esc(p.name||'')}" placeholder="e.g. Wireless Earbuds Pro"/>
+      <span class="ferr" id="en"></span>
+    </div>
+    <div class="fg">
+      <label class="fl">Description</label>
+      <textarea class="fi ftarea" id="fd" placeholder="Optional…">${esc(p.description||'')}</textarea>
+    </div>
+    <div class="fgrid2">
+      <div class="fg">
+        <label class="fl">Price (KES) *</label>
+        <input class="fi" id="fp" type="number" min="0" step="0.01" value="${p.price??''}" placeholder="0.00"/>
+        <span class="ferr" id="ep"></span>
+      </div>
+      <div class="fg">
+        <label class="fl">Quantity *</label>
+        <input class="fi" id="fq" type="number" min="0" value="${p.quantity??''}" placeholder="0"/>
+        <span class="ferr" id="eq"></span>
+      </div>
     </div>
   </div>
+  <div class="modal-ft">
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-lime" id="savBtn" onclick="save(${p.id??'null'})">${p.id?'Save Changes':'Create Product'}</button>
+  </div>`;
+}
 
-  <!-- Toast -->
-  <div id="toastContainer" class="fixed top-6 right-6 z-50 flex flex-col gap-3"></div>
+function openNew(){ showModal('New Product',formHTML()); document.getElementById('fn').focus(); }
+function openEdit(id){ const p=S.all.find(x=>x.id===id); if(p){ showModal(`Edit — ${p.name}`,formHTML(p)); document.getElementById('fn').focus(); } }
 
-  <script>
-    const API = '/api/v1';
-    let allProducts = [];
+function openDetail(id){
+  const p=S.all.find(x=>x.id===id); if(!p) return;
+  const inS=p.quantity>0;
+  showModal(p.name,`<div class="modal-body">
+    <div class="detail-price"><sup>KES </sup>${fmt(p.price)}</div>
+    ${p.description?`<p style="color:var(--dim);font-size:.88rem;line-height:1.75">${esc(p.description)}</p>`:''}
+    <div class="dm">
+      <div class="dm-row"><span class="dm-k">Status</span>
+        <span style="display:flex;align-items:center;gap:.45rem;font-size:.82rem">
+          <span class="stock-dot ${inS?'in':'out'}" style="margin:0"></span>${inS?'In Stock':'Out of Stock'}
+        </span>
+      </div>
+      <div class="dm-row"><span class="dm-k">Quantity</span><span>${p.quantity??0} units</span></div>
+      <div class="dm-row"><span class="dm-k">Product ID</span><span style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--ghost)">#${p.id}</span></div>
+    </div>
+  </div>
+  <div class="modal-ft">
+    <button class="btn btn-kill btn-sm" onclick="askDelete(${p.id})">Delete</button>
+    <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+    <button class="btn btn-lime btn-sm" onclick="openEdit(${p.id})">Edit</button>
+  </div>`);
+}
 
-    function getApiKey() {
-      const key = document.getElementById('apiKey').value.trim();
-      if (!key) {
-        showToast('❌ Please enter your X-API-Key', 'error');
-        return null;
-      }
-      return key;
-    }
+async function save(id){
+  const name=document.getElementById('fn').value.trim();
+  const price=parseFloat(document.getElementById('fp').value);
+  const qty=parseInt(document.getElementById('fq').value);
+  const desc=document.getElementById('fd').value.trim();
+  let ok=true;
+  if(!name){document.getElementById('en').textContent='Required';ok=false;}else document.getElementById('en').textContent='';
+  if(isNaN(price)||price<0){document.getElementById('ep').textContent='Enter valid price';ok=false;}else document.getElementById('ep').textContent='';
+  if(isNaN(qty)||qty<0){document.getElementById('eq').textContent='Enter valid qty';ok=false;}else document.getElementById('eq').textContent='';
+  if(!ok) return;
+  const btn=document.getElementById('savBtn');
+  btn.disabled=true; btn.textContent=id?'Saving…':'Creating…';
+  try{
+    const body={name,description:desc,price,quantity:qty};
+    if(id) await req(`/products/${id}`,{method:'PUT',body:JSON.stringify(body)});
+    else    await req('/products',{method:'POST',body:JSON.stringify(body)});
+    toast('ok',id?`"${name}" updated`:`"${name}" created`);
+    closeModal(); await load();
+  }catch(e){
+    toast('err',e.message);
+    btn.disabled=false; btn.textContent=id?'Save Changes':'Create Product';
+  }
+}
 
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast flex items-center gap-3 px-6 py-4 rounded-3xl shadow-2xl text-sm font-medium ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
-      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-xmark-circle'}"></i><span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 4500);
-    }
+function askDelete(id){
+  const p=S.all.find(x=>x.id===id); if(!p) return;
+  showModal('Delete Product',`<div class="modal-body">
+    <div class="del-box">Permanently delete <strong style="color:var(--text)">"${esc(p.name)}"</strong>? This cannot be undone.</div>
+  </div>
+  <div class="modal-ft">
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-kill" onclick="del(${id})">Delete Forever</button>
+  </div>`);
+}
 
-    async function loadProducts() {
-      const grid = document.getElementById('productsGrid');
-      grid.innerHTML = `<div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-500"></i></div>`;
+async function del(id){
+  const p=S.all.find(x=>x.id===id);
+  try{ await req(`/products/${id}`,{method:'DELETE'}); toast('ok',`"${p?.name}" deleted`); closeModal(); await load(); }
+  catch(e){ toast('err',e.message); }
+}
 
-      try {
-        const res = await fetch(`${API}/products`);
-        if (!res.ok) throw new Error('API error');
-        allProducts = await res.json();
-        renderProducts();
-        showToast('✅ Products loaded successfully', 'success');
-      } catch (err) {
-        grid.innerHTML = `<p class="col-span-full text-red-400 text-center py-12">Failed to load products. Check your X-API-Key and try again.</p>`;
-        showToast('❌ Failed to load products', 'error');
-      }
-    }
+/* ══════════════════════════════════
+   TOAST
+══════════════════════════════════ */
+const TICO={
+  ok:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+  err:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>`,
+  inf:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+};
+function toast(t,msg){
+  const w=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast toast-${t}`;
+  el.innerHTML=(TICO[t]||'')+esc(msg);
+  w.appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),300); },3200);
+}
 
-    function renderProducts() {
-      let filtered = allProducts.filter(p => {
-        const search = document.getElementById('searchInput').value.toLowerCase().trim();
-        const minP = parseFloat(document.getElementById('minPrice').value) || 0;
-        const maxP = parseFloat(document.getElementById('maxPrice').value) || Infinity;
-        const stockOnly = document.getElementById('inStockOnly').checked;
-        return (!search || p.name.toLowerCase().includes(search) || (p.description && p.description.toLowerCase().includes(search))) &&
-               p.price >= minP && p.price <= maxP &&
-               (!stockOnly || p.stock_quantity > 0);
-      });
+/* ══════════════════════════════════
+   MOBILE SIDEBAR
+══════════════════════════════════ */
+function openSidebar(){ document.getElementById('sidebar').classList.add('mob-show'); document.getElementById('sbBack').classList.add('on'); document.body.style.overflow='hidden'; }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('mob-show'); document.getElementById('sbBack').classList.remove('on'); document.body.style.overflow=''; }
 
-      const sort = document.getElementById('sortSelect').value;
-      if (sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
-      else filtered.sort((a,b) => a.name.localeCompare(b.name));
-
-      document.getElementById('countText').textContent = `${filtered.length} products`;
-
-      let html = '';
-      if (filtered.length === 0) {
-        html = `<div class="col-span-full text-center py-20"><i class="fa-solid fa-box-open text-6xl text-gray-600"></i><p class="text-xl text-gray-400 mt-4">No products found</p></div>`;
-      } else {
-        filtered.forEach(p => {
-          html += `
-            <div class="product-card bg-gray-900 border border-gray-800 rounded-3xl p-6">
-              <img src="https://picsum.photos/id/${p.id}/600/300" class="w-full h-48 object-cover rounded-2xl">
-              <h3 class="font-semibold text-xl mt-4">${p.name}</h3>
-              <p class="text-gray-400 text-sm mt-2">${p.description || ''}</p>
-              <div class="flex justify-between mt-6">
-                <span class="text-3xl font-bold text-emerald-400">$${p.price}</span>
-                <span class="text-sm ${p.stock_quantity < 10 ? 'text-red-400' : 'text-emerald-400'}">${p.stock_quantity} in stock</span>
-              </div>
-              <div class="mt-6 flex gap-3">
-                <button onclick="editProduct(${p.id})" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-2xl">Edit</button>
-                <button onclick="deleteProduct(${p.id})" class="flex-1 py-3 bg-red-600 hover:bg-red-700 rounded-2xl">Delete</button>
-              </div>
-            </div>`;
-        });
-      }
-      document.getElementById('productsGrid').innerHTML = html;
-    }
-
-    function showCreateModal() {
-      document.getElementById('modalTitle').textContent = 'New Product';
-      document.getElementById('productForm').reset();
-      document.getElementById('productId').value = '';
-      document.getElementById('modal').classList.remove('hidden');
-    }
-
-    function hideModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
-
-    async function saveProduct(e) {
-      e.preventDefault();
-      const apiKey = getApiKey();
-      if (!apiKey) return;
-
-      const id = document.getElementById('productId').value;
-      const payload = {
-        name: document.getElementById('name').value,
-        description: document.getElementById('description').value,
-        price: parseFloat(document.getElementById('price').value),
-        stock_quantity: parseInt(document.getElementById('stock').value)
-      };
-
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `${API}/products/${id}` : `${API}/products`;
-
-      try {
-        const res = await fetch(url, {
-          method,
-          headers: {'Content-Type': 'application/json', 'X-API-Key': apiKey},
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          hideModal();
-          loadProducts();
-          showToast('✅ Saved successfully', 'success');
-        } else {
-          showToast('❌ Save failed', 'error');
-        }
-      } catch (err) {
-        showToast('❌ Network error', 'error');
-      }
-    }
-
-    async function editProduct(id) {
-      try {
-        const res = await fetch(`${API}/products/${id}`);
-        const p = await res.json();
-        document.getElementById('modalTitle').textContent = 'Edit Product';
-        document.getElementById('productId').value = p.id;
-        document.getElementById('name').value = p.name;
-        document.getElementById('description').value = p.description || '';
-        document.getElementById('price').value = p.price;
-        document.getElementById('stock').value = p.stock_quantity;
-        document.getElementById('modal').classList.remove('hidden');
-      } catch (err) {
-        showToast('❌ Failed to load', 'error');
-      }
-    }
-
-    async function deleteProduct(id) {
-      if (!confirm('Delete permanently?')) return;
-      const apiKey = getApiKey();
-      if (!apiKey) return;
-      try {
-        await fetch(`${API}/products/${id}`, { method: 'DELETE', headers: {'X-API-Key': apiKey} });
-        loadProducts();
-        showToast('✅ Deleted', 'success');
-      } catch (err) {
-        showToast('❌ Delete failed', 'error');
-      }
-    }
-
-    // Simple listeners
-    document.getElementById('searchInput').addEventListener('input', () => setTimeout(renderProducts, 300));
-    document.getElementById('minPrice').addEventListener('input', renderProducts);
-    document.getElementById('maxPrice').addEventListener('input', renderProducts);
-    document.getElementById('inStockOnly').addEventListener('change', renderProducts);
-    document.getElementById('sortSelect').addEventListener('change', renderProducts);
-
-    window.onload = loadProducts;
-  </script>
+/* ══════════════════════════════════
+   UTILS
+══════════════════════════════════ */
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(n){ return Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+</script>
 </body>
 </html>
