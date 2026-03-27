@@ -8,7 +8,7 @@ app = FastAPI(title="Product Catalog")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# In-memory products (works reliably on Vercel)
+# In-memory products - this will show on Vercel
 PRODUCTS = [
     {"id": 1, "name": "Mechanical Keyboard", "description": "RGB backlit mechanical keyboard", "price": 8900, "stock_quantity": 5},
     {"id": 2, "name": "Wireless Earbuds Pro", "description": "Noise cancelling true wireless earbuds", "price": 4500, "stock_quantity": 12},
