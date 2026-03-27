@@ -6,10 +6,9 @@ from typing import List, Optional
 
 app = FastAPI(title="Product Catalog")
 
-# Mount your existing frontend
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Sample products (in-memory - survives Vercel deploys)
+# In-memory products (works reliably on Vercel)
 PRODUCTS = [
     {"id": 1, "name": "Mechanical Keyboard", "description": "RGB backlit mechanical keyboard", "price": 8900, "stock_quantity": 5},
     {"id": 2, "name": "Wireless Earbuds Pro", "description": "Noise cancelling true wireless earbuds", "price": 4500, "stock_quantity": 12},
@@ -32,19 +31,17 @@ def get_api_key(x_api_key: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid X-API-Key")
     return x_api_key
 
-# Serve frontend
 @app.get("/")
 async def serve_frontend():
     return FileResponse("static/index.html")
 
-# API Endpoints
 @app.get("/api/v1/products")
 def list_products():
     return PRODUCTS
 
 @app.post("/api/v1/products")
 def create_product(product: ProductCreate, api_key: str = Depends(get_api_key)):
-    new_id = max(p["id"] for p in PRODUCTS) + 1 if PRODUCTS else 1
+    new_id = max((p["id"] for p in PRODUCTS), default=0) + 1
     new_product = {"id": new_id, **product.model_dump()}
     PRODUCTS.append(new_product)
     return new_product
@@ -67,4 +64,4 @@ def delete_product(product_id: int, api_key: str = Depends(get_api_key)):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "products_count": len(PRODUCTS)}
+    return {"status": "ok", "products": len(PRODUCTS)}
