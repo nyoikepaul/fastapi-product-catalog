@@ -896,7 +896,7 @@ function filter(){
   if(S.q){ const q=S.q.toLowerCase(); f=f.filter(p=>p.name?.toLowerCase().includes(q)||p.description?.toLowerCase().includes(q)); }
   if(S.minP>0) f=f.filter(p=>p.price>=S.minP);
   if(S.maxP<99999) f=f.filter(p=>p.price<=S.maxP);
-  if(S.stockOnly) f=f.filter(p=>p.quantity>0);
+  if(S.stockOnly) f=f.filter(p=>p.stock_quantity>0);
   const[key,dir]=S.sort.split('_');
   f.sort((a,b)=>{
     let av=key==='name'?a.name?.toLowerCase():key==='price'?a.price:a.quantity;
@@ -932,7 +932,7 @@ function render(){
   if(!S.fil.length){ g.innerHTML=emptyHTML(); return; }
   g.className='prod-grid'+(S.view==='list'?' list':'');
   g.innerHTML=S.fil.map((p,i)=>{
-    const inStock=p.quantity>0, lv=S.view==='list';
+    const inStock=p.stock_quantity>0, lv=S.view==='list';
     return `<div class="card" onclick="openDetail(${p.id})" style="animation-delay:${Math.min(i*.04,.4)}s">
       <div${lv?' class="card-body"':''}>
         <div class="card-head">
@@ -943,7 +943,7 @@ function render(){
         <div class="card-price"><span class="cur">KES</span>${fmt(p.price)}</div>
       </div>
       <div class="card-foot">
-        <div class="card-qty">Qty: <strong>${p.quantity??0}</strong></div>
+        <div class="card-qty">Qty: <strong>${p.stock_quantity??0}</strong></div>
         <div class="card-acts" onclick="event.stopPropagation()">
           <button class="btn btn-ghost btn-xs btn-ico" title="Edit" onclick="openEdit(${p.id})">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1038,7 +1038,7 @@ function renderCmd(){
   if(!items.length){ res.innerHTML=`<div class="cmd-empty">No products found</div>`; return; }
   res.innerHTML=items.map((p,i)=>`
     <div class="cmd-item${i===S.cmdSel?' sel':''}" onclick="cmdSelect(${p.id})">
-      <div class="stock-dot ${p.quantity>0?'in':'out'}" style="margin:0;flex-shrink:0"></div>
+      <div class="stock-dot ${p.stock_quantity>0?'in':'out'}" style="margin:0;flex-shrink:0"></div>
       <div>
         <div class="cmd-item-name">${esc(p.name)}</div>
         ${p.description?`<div style="font-size:.72rem;color:var(--ghost)">${esc(p.description).slice(0,60)}…</div>`:''}
@@ -1087,7 +1087,7 @@ function formHTML(p={}){
       </div>
       <div class="fg">
         <label class="fl">Quantity *</label>
-        <input class="fi" id="fq" type="number" min="0" value="${p.quantity??''}" placeholder="0"/>
+        <input class="fi" id="fq" type="number" min="0" value="${p.stock_quantity??''}" placeholder="0"/>
         <span class="ferr" id="eq"></span>
       </div>
     </div>
@@ -1103,7 +1103,7 @@ function openEdit(id){ const p=S.all.find(x=>x.id===id); if(p){ showModal(`Edit 
 
 function openDetail(id){
   const p=S.all.find(x=>x.id===id); if(!p) return;
-  const inS=p.quantity>0;
+  const inS=p.stock_quantity>0;
   showModal(p.name,`<div class="modal-body">
     <div class="detail-price"><sup>KES </sup>${fmt(p.price)}</div>
     ${p.description?`<p style="color:var(--dim);font-size:.88rem;line-height:1.75">${esc(p.description)}</p>`:''}
@@ -1113,7 +1113,7 @@ function openDetail(id){
           <span class="stock-dot ${inS?'in':'out'}" style="margin:0"></span>${inS?'In Stock':'Out of Stock'}
         </span>
       </div>
-      <div class="dm-row"><span class="dm-k">Quantity</span><span>${p.quantity??0} units</span></div>
+      <div class="dm-row"><span class="dm-k">Quantity</span><span>${p.stock_quantity??0} units</span></div>
       <div class="dm-row"><span class="dm-k">Product ID</span><span style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--ghost)">#${p.id}</span></div>
     </div>
   </div>
@@ -1137,7 +1137,7 @@ async function save(id){
   const btn=document.getElementById('savBtn');
   btn.disabled=true; btn.textContent=id?'Saving…':'Creating…';
   try{
-    const body={name,description:desc,price,quantity:qty};
+    const body={name,description:desc,price,stock_quantity:qty};
     if(id) await req(`/products/${id}`,{method:'PUT',body:JSON.stringify(body)});
     else    await req('/products',{method:'POST',body:JSON.stringify(body)});
     toast('ok',id?`"${name}" updated`:`"${name}" created`);
