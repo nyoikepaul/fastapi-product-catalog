@@ -6,7 +6,7 @@
 <title>Catalog · Product Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
 :root {
   --void:#06060a; --ink:#0c0c14; --surface:#11111c; --card:#161622;
@@ -22,7 +22,7 @@
 html{height:100%}
 body{
   min-height:100vh; background:var(--void); color:var(--text);
-  font-family:'Manrope',sans-serif; font-size:14px; line-height:1.6;
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; line-height:1.6;
   overflow-x:hidden;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   background-attachment:fixed;
@@ -57,7 +57,7 @@ a{color:inherit;text-decoration:none}
 /* FIX 1: "Catalog" — no space, correct kerning */
 .t-logo{
   display:flex;align-items:center;gap:.6rem;
-  font-family:'Manrope',sans-serif;font-weight:800;font-size:.95rem;
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:.95rem;
   letter-spacing:-.02em;white-space:nowrap;
 }
 .t-logo-mark{
@@ -277,7 +277,7 @@ a{color:inherit;text-decoration:none}
 .cmd-box{background:var(--surface);border:1px solid var(--rim2);border-radius:14px;width:100%;max-width:500px;box-shadow:0 32px 80px rgba(0,0,0,.8);overflow:hidden;transform:translateY(-10px) scale(.98);transition:transform .3s var(--spring)}
 .cmd-ov.open .cmd-box{transform:none}
 .cmd-inp-row{display:flex;align-items:center;gap:.7rem;padding:.85rem 1.1rem;border-bottom:1px solid var(--rim)}
-.cmd-inp{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:.95rem;font-family:'Manrope',sans-serif}
+.cmd-inp{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:.95rem;font-family:'Plus Jakarta Sans',sans-serif}
 .cmd-inp::placeholder{color:var(--ghost)}
 .cmd-res{max-height:320px;overflow-y:auto}
 .cmd-item{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.1rem;cursor:pointer;transition:background .15s}
@@ -306,7 +306,7 @@ a{color:inherit;text-decoration:none}
 .fi{background:var(--card);border:1px solid var(--rim);border-radius:8px;padding:.62rem .85rem;color:var(--text);outline:none;width:100%;font-size:.86rem;transition:border-color .2s,box-shadow .2s}
 .fi:focus{border-color:var(--lime);box-shadow:0 0 0 3px var(--glow)}
 .fi::placeholder{color:var(--ghost)}
-.ftarea{resize:vertical;min-height:76px;font-family:'Manrope',sans-serif;line-height:1.6}
+.ftarea{resize:vertical;min-height:76px;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.6}
 .fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
 .ferr{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--red)}
  
