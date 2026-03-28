@@ -619,13 +619,6 @@ const IMG_MAP={
   Other:       'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&q=75&fit=crop',
 };
 function imgUrl(p){ return IMG_MAP[getcat(p)]||IMG_MAP.Other; }
-}
- 
-/* ══════════════════════════════════════
-   BOOT
-══════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  const k = document.getElementById('apiKey');
   if (S.key) { k.value = S.key; syncApiUi(); }
  
   k.addEventListener('input', e => {
