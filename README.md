@@ -38,3 +38,15 @@ https://fastapi-product-catalog.vercel.app/redoc
 | Auth | X-API-Key header |
 | Deploy | Vercel · Docker |
 | Tests | Pytest · GitHub Actions |
+
+## Live Demo
+🌐 **[fastapi-product-catalog.vercel.app](https://fastapi-product-catalog.vercel.app)**
+
+## Tech Stack
+| Layer | Tech |
+|---|---|
+| API | FastAPI 0.115 · Python 3.12 |
+| Database | SQLite · SQLAlchemy |
+| Auth | X-API-Key header |
+| Deploy | Vercel · Docker |
+| Tests | Pytest · GitHub Actions |
