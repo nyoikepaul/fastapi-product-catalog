@@ -20,7 +20,8 @@ https://fastapi-product-catalog.vercel.app/redoc
 | GET | `/` | Health Check / Welcome | None |
 | GET | `/products/` | List all products | None |
 | POST | `/products/` | Create new product | API Key |
-<img width="1366" height="677" alt="image" src="https://github.com/user-attachments/assets/dd0a0220-597d-48a5-ab6a-ca17f91f1c8d" />
+<img width="1366" height="600" alt="image" src="https://github.com/user-attachments/assets/3555907a-2665-4674-bf83-7ac75745c45a" />
+
 
 
 ---
