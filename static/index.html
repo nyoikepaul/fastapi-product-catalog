@@ -618,7 +618,7 @@ const IMG_MAP={
   Accessories: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&q=75&fit=crop',
   Other:       'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&q=75&fit=crop',
 };
-function imgUrl(p){ return IMG_MAP[getcat(p)]||IMG_MAP.Other; }/400/240`;
+function imgUrl(p){ return IMG_MAP[getcat(p)]||IMG_MAP.Other; }
 }
  
 /* ══════════════════════════════════════
@@ -841,7 +841,7 @@ function renderCmd(){
   const res=document.getElementById('cmdRes');
   const items=S.all.filter(p=>!q||p.name?.toLowerCase().includes(q)||p.description?.toLowerCase().includes(q)).slice(0,8);
   if(!items.length){res.innerHTML=`<div class="cmd-empty">No products found</div>`;return;}
-  const cat=getCategory;
+  const cat=getcat(p);
   res.innerHTML=items.map((p,i)=>{
     const cs=CAT_STYLE[cat(p)]||CAT_STYLE.Other;
     return `<div class="cmd-item${i===S.cmdSel?' sel':''}" onclick="cmdSel(${p.id})">
