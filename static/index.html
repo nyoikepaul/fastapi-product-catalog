@@ -591,7 +591,7 @@ const CAT_RULES = [
   { cat:'Accessories',kw:['hub','stand','pad','cable','dock','adapter','charger','case','bag','cover'] },
 ];
  
-function getCategory(p) {
+function getcat(p) {
   const txt = `${p.name} ${p.description||''}`.toLowerCase();
   for (const r of CAT_RULES) {
     if (r.kw.some(k => txt.includes(k))) return r.cat;
@@ -610,9 +610,15 @@ const CAT_STYLE = {
 };
  
 /* FIX 2: Picsum seeded image by product id */
-function imgUrl(id, seed) {
-  // Use picsum with seed for consistent image per product
-  return `https://picsum.photos/seed/prod${seed||id}/400/240`;
+const IMG_MAP={
+  Audio:       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=75&fit=crop',
+  Computing:   'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=75&fit=crop',
+  Displays:    'https://images.unsplash.com/photo-1593640408182-31c228b26b92?w=400&q=75&fit=crop',
+  Storage:     'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400&q=75&fit=crop',
+  Accessories: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&q=75&fit=crop',
+  Other:       'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&q=75&fit=crop',
+};
+function imgUrl(p){ return IMG_MAP[getcat(p)]||IMG_MAP.Other; }/400/240`;
 }
  
 /* ══════════════════════════════════════
@@ -689,7 +695,7 @@ function filter() {
   if (S.maxP<99999) f=f.filter(p=>p.price<=S.maxP);
   if (S.stockOnly) f=f.filter(p=>p.stock_quantity>0);
   // FIX 5: category filter
-  if (S.cat!=='all') f=f.filter(p=>getCategory(p)===S.cat);
+  if (S.cat!=='all') f=f.filter(p=>getcat(p)===S.cat);
  
   const [key,dir] = S.sort.split('_');
   f.sort((a,b) => {
@@ -737,12 +743,12 @@ function render() {
   g.className = 'pgrid-cards'+(S.view==='list'?' list':'');
   g.innerHTML = S.fil.map((p,i) => {
     const inS = p.stock_quantity > 0;   // FIX 1
-    const cat = getCategory(p);
+    const cat = getcat(p);
     const cs = CAT_STYLE[cat]||CAT_STYLE.Other;
     const lv = S.view==='list';
     return `<div class="card" onclick="openDetail(${p.id})" style="animation-delay:${Math.min(i*.04,.4)}s">
       <div class="card-img">
-        <img src="${imgUrl(p.id, p.id)}" alt="${esc(p.name)}" loading="lazy"
+        <img src="${imgUrl(p)}" alt="${esc(p.name)}" loading="lazy"
              onerror="this.style.display='none';this.parentElement.style.background='var(--surface)'"/>
         <span class="cat-tag" style="background:${cs.bg};color:${cs.color};border:1px solid ${cs.border}">${cat}</span>
         <span class="stock-tag ${inS?'tag-in':'tag-out'}">${inS?'In Stock':'Out of Stock'}</span>
@@ -899,9 +905,9 @@ function openEdit(id){const p=S.all.find(x=>x.id===id);if(p){showModal(`Edit —
 function openDetail(id){
   const p=S.all.find(x=>x.id===id);if(!p)return;
   const inS=p.stock_quantity>0;
-  const cat=getCategory(p);const cs=CAT_STYLE[cat]||CAT_STYLE.Other;
+  const cat=getcat(p);const cs=CAT_STYLE[cat]||CAT_STYLE.Other;
   showModal(p.name,`<div class="modal-body">
-    <img src="${imgUrl(p.id,p.id)}" style="width:100%;height:180px;object-fit:cover;border-radius:8px;margin-bottom:.25rem" onerror="this.style.display='none'" loading="lazy"/>
+    <img src="${imgUrl(p)}" style="width:100%;height:180px;object-fit:cover;border-radius:8px;margin-bottom:.25rem" onerror="this.style.display='none'" loading="lazy"/>
     <div class="det-price"><sup>KES </sup>${fmt(p.price)}</div>
     ${p.description?`<p style="color:var(--dim);font-size:.86rem;line-height:1.75">${esc(p.description)}</p>`:''}
     <div>
